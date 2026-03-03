@@ -5,6 +5,7 @@ export type ScannedItem = {
   price: number;
   source: "camera" | "manual";
   createdAt: number;
+  camPrint?: string; // base64 da imagem capturada
 };
 
 export type ApiResult = {

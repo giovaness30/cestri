@@ -2,12 +2,13 @@
 
 import Image from "next/image";
 import styles from "./page.module.css";
-import { useMemo, useRef, useState } from "react";
+import { use, useEffect, useMemo, useRef, useState } from "react";
 import CameraPreview from "./components/CameraPreview";
 import CustomIcon from "./components/CustomIcons";
 import ICONS from "./enums/iconsEnum";
 import { ApiResult, ScannedItem } from "./types/default";
 import { currencyBRL } from "./utils/utils";
+import SwithButton from "./components/SwithButton";
 
 export default function Home() {
 
@@ -26,9 +27,21 @@ export default function Home() {
   const successfulCaptures = apiResults.filter(r => r.success).length;
   const successRate = apiResults.length ? (successfulCaptures / apiResults.length) * 100 : 0;
 
+
+  useEffect(() => {
+    const storedItems = localStorage.getItem("items");
+    if (storedItems) {
+      setItems(JSON.parse(storedItems));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("items", JSON.stringify(items));
+  }, [items]);
+
   function resetAll() {
     setItems([]);
-    setApiResults([]);
+    localStorage.removeItem("items");
   }
 
 
@@ -40,8 +53,8 @@ export default function Home() {
 
   };
 
-  function addItem(name: string, price: number, source: "camera" | "manual") {
-    const newItem: ScannedItem = { id: crypto.randomUUID(), name, price, source, createdAt: Date.now() };
+  function addItem(name: string, price: number, source: "camera" | "manual", camPrint?: string) {
+    const newItem: ScannedItem = { id: crypto.randomUUID(), name, price, source, createdAt: Date.now(), camPrint };
     setItems(prev => [newItem, ...prev]);
   }
 
@@ -55,6 +68,11 @@ export default function Home() {
     if (inputNameRef.current) inputNameRef.current.value = "";
     if (inputPriceRef.current) inputPriceRef.current.value = "";
   }
+
+  const optionsModeCapture = [
+    { label: 'camera', value: 'camera', icon: ICONS.camera },
+    { label: 'manual', value: 'manual', icon: ICONS.edit }
+  ]
 
 
   const handleSubmit = async (file: Blob) => {
@@ -73,7 +91,7 @@ export default function Home() {
 
       const data = await response.json();
 
-      addItem(data.response.nome, data.response.preco, "camera");
+      addItem(data.response.nome, data.response.preco, "camera", `data:image/jpeg;base64,${await blobToBase64(file)}`);
 
       console.log('retorno', data);
     } catch (error) {
@@ -127,9 +145,7 @@ export default function Home() {
       <div className="container">
         <header className="header">
           <h1 className="h1">
-            <CustomIcon path={ICONS.cart} />
-            <span>Leitor de Preços (nativo)</span>
-            <span className="muted smallText">sem libs externas</span>
+            <span>Leitor de Preços</span>
           </h1>
           <div className="row">
             <button className="button" onClick={() => setDark(v => !v)} title="Alternar tema">
@@ -138,30 +154,12 @@ export default function Home() {
             <button className="button" onClick={resetAll} title="Limpar listas">
               <CustomIcon path={ICONS.reset} /> Resetar
             </button>
-            <button className="button" onClick={() => setShowDebug(v => !v)} title="Painel de debug">
-              <CustomIcon path={ICONS.bug} /> Debug
-            </button>
           </div>
         </header>
 
         {/* Tabs de modo */}
         <div className="row rowMt12" role="tablist" aria-label="Modo de captura">
-          <button
-            role="tab"
-            aria-selected={scanMode === "camera"}
-            onClick={() => setScanMode("camera")}
-            className={`tab pill ${scanMode === "camera" ? "pillActive" : ""}`}
-          >
-            <CustomIcon path={ICONS.camera} /> Câmera
-          </button>
-          <button
-            role="tab"
-            aria-selected={scanMode === "manual"}
-            onClick={() => setScanMode("manual")}
-            className={`tab pill ${scanMode === "manual" ? "pillActive" : ""}`}
-          >
-            <CustomIcon path={ICONS.edit} /> Manual
-          </button>
+          <SwithButton options={optionsModeCapture} value={scanMode} onChange={e => setScanMode(e === "camera" ? "camera" : "manual")} />
         </div>
 
         {/* Seção principal */}
@@ -170,18 +168,11 @@ export default function Home() {
             <section className="card">
               <div className="flexBetweenWrap">
                 <strong className="strongInline">
-                  <CustomIcon path={ICONS.camera} /> Capturar rótulo
+                  <CustomIcon path={ICONS.camera} /> Capturar o rótulo
                 </strong>
                 <div className="row">
                   <CameraPreview onCapture={handleCapture} />
-                  <small className="muted">Somente imagens reais serão enviadas para a API.</small>
                 </div>
-              </div>
-              <div className="gridMt10">
-                <label>
-                  <span className="muted">Endpoint da API:</span>
-                  <input className="input inputFull" value={apiEndpoint} onChange={e => setApiEndpoint(e.target.value)} />
-                </label>
               </div>
             </section>
           ) : (
@@ -209,6 +200,7 @@ export default function Home() {
                 <div key={it.id} className="item">
                   <div className="gridOnly">
                     <span className="fontSemibold">{it.name}</span>
+                    {it.camPrint && <img width={50} height={50} src={`${it.camPrint}`} alt={it.name} />}
                     <small className="muted">{it.source === "camera" ? "📸 câmera" : "✍️ manual"} • {new Date(it.createdAt).toLocaleString()}</small>
                   </div>
                   <div className="row">
@@ -263,17 +255,7 @@ export default function Home() {
         </main>
 
         <footer className="footer">
-          <p>
-            {scanMode === "camera"
-              ? "📸 Sistema de captura: selecione uma imagem real e simulamos o envio para a sua API via POST/PUT."
-              : "✍️ Modo Manual: digite manualmente os produtos e preços."}
-          </p>
-          {scanMode === "camera" && apiResults.length > 0 && (
-            <p className="mt4fs12">
-              📊 Estatísticas API: {successfulCaptures}/{apiResults.length} capturas bem-sucedidas
-              ({successRate.toFixed(0)}% de sucesso) — Apenas fotos reais enviadas para API
-            </p>
-          )}
+
         </footer>
       </div>
     </div>
