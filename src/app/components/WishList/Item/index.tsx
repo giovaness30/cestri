@@ -17,7 +17,7 @@ const WishListItem = ({ id, title, description, price, quantity, onRemove, onCli
         <div>{title}</div>
         <div>{description}</div>
         <div>Preço: {price ? `R$ ${price.toFixed(2)}` : 'N/A'}</div>
-        <div>Quantity: {quantity ? quantity : 'N/A'}</div>
+        <div>Quantidade: {quantity ? quantity : '0'}</div>
         <button className={style.removeButton} onClick={() => onRemove && onRemove(id)}>x</button>
       </div>
     </div>

@@ -129,7 +129,7 @@ const wishlist = () => {
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)} setOpen={setIsModalOpen}>
         <div>
           <input type="text" placeholder="Nome" onChange={(e) => setNewItemData({ ...newItemData, title: e.target.value })} />
-          <input type="number" placeholder="Quantidade" value={newItemData.quantity} onChange={(e) => setNewItemData({ ...newItemData, quantity: Number(e.target.value) })} />
+          <input type="number" placeholder="Quantidade" value={newItemData.quantity ?? 1} onChange={(e) => setNewItemData({ ...newItemData, quantity: Number(e.target.value) })} />
           <button onClick={handleAddItem}>Add Item</button>
         </div>
       </Modal>
