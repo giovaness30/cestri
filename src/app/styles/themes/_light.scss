@@ -1,0 +1,31 @@
+@use "../tokens" as *;
+
+:root {
+  // BACKGROUND
+  --bg: #{$gray-50};
+  --bg-card: #{$white};
+  --bg-modal-floating: #{$gray-200};
+
+  // TEXT
+  --text-primary: #{$color-text-primary-light};
+  --text-secondary: #{$color-text-secondary-light};
+
+  // BRAND
+  --primary: #{$color-primary};
+  --primary-hover: #{$color-primary-hover};
+  --secondary: #{$color-secondary};
+
+  // FEEDBACK
+  --success: #{$color-success};
+  --error: #{$color-error};
+  --warning: #{$color-warning};
+
+  // BORDER
+  --border: #{$gray-200};
+
+  // SHADOW
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  //RADIUS
+  --floatingRadius: #{$radius-md};
+}

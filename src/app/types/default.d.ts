@@ -2,6 +2,7 @@
 export type ScannedItem = {
   id: string;
   name: string;
+  quantity: number;
   price: number;
   source: "camera" | "manual";
   createdAt: number;

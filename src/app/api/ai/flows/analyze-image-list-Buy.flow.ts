@@ -3,26 +3,30 @@ import { z } from "zod";
 // import { readFile } from 'node:fs/promises';
 
 const productSchema = z.object({
-  nome: z.string(),
-  preco: z.number(),
+name: z.string(),
+  prices: z.array(
+    z.object({
+      price: z.number(),
+      quantity: z.number()
+    })
+  )
 });
 
 
 interface AnalyzeImageInput {
   instruction: string;
   imageBase64: string; // imagem em base64
-  schema?: z.ZodSchema<any>; // opcional, caso queira passar um schema específico para a resposta
 }
 
-export const analyzeImageFlow = ai.defineFlow(
+export const analyzeImageListBuyFlow = ai.defineFlow(
   {
-    name: "analyzeImageFlow",
+    name: "analyzeImageListBuyFlow",
     inputSchema: z.object({
       instruction: z.string(),
       imageBase64: z.string(), // imagem em base64
     }),
   },
-  async ({ instruction, imageBase64, schema }: AnalyzeImageInput) => {
+  async ({ instruction, imageBase64 }: AnalyzeImageInput) => {
     console.log('o que chega no enviar:', instruction, imageBase64);
     
     try{
@@ -32,14 +36,14 @@ export const analyzeImageFlow = ai.defineFlow(
       const response = await ai.generate({
   prompt: [{ media: { url: `data:image/jpeg;base64,${imageBase64}` } }, { text: instruction }],
   output: {
-    schema: schema || productSchema
+    schema: productSchema
   }
 });
       
       return response.output;
     }
     catch(error) {
-      console.error("Erro no analyzeImageFlow:", error);
+      console.error("Erro no analyzeImageListBuyFlow:", error);
       throw error; // relança o erro para ser tratado no route.ts
     }
   }

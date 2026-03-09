@@ -1,0 +1,26 @@
+@use "./colors" as *;
+@use "./radius" as *;
+
+// === CORES BASE DO PRODUTO ===
+
+$color-primary: $blue-500;
+$color-primary-hover: $blue-600;
+
+$color-secondary: $violet-500;
+$color-secondary-hover: $violet-600;
+
+$color-accent: $emerald-500;
+
+// === FEEDBACK ===
+
+$color-success: $emerald-500;
+$color-error: $red-500;
+$color-warning: $amber-500;
+
+// === TEXTOS ===
+
+$color-text-primary-light: $gray-900;
+$color-text-secondary-light: $gray-600;
+
+$color-text-primary-dark: $gray-50;
+$color-text-secondary-dark: $gray-400;

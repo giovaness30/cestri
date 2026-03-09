@@ -1,14 +1,29 @@
 'use client'
 
 import Image from "next/image";
-import styles from "./page.module.css";
+import styles from "./page.module.scss";
 import { use, useEffect, useMemo, useRef, useState } from "react";
 import CameraPreview from "./components/CameraPreview";
 import CustomIcon from "./components/CustomIcons";
 import ICONS from "./enums/iconsEnum";
 import { ApiResult, ScannedItem } from "./types/default";
-import { currencyBRL } from "./utils/utils";
+import { blobToBase64, currencyBRL } from "./utils/utils";
 import SwithButton from "./components/SwithButton";
+import Modal from "./components/Modal";
+
+interface ModalSelectAddItemState {
+  open: boolean;
+  name: string;
+  prices: { price: number; quantity: number }[];
+}
+
+interface AddItemParams {
+  name: string;
+  price: number;
+  source: "camera" | "manual";
+  camPrint?: string;
+  quantity: number;
+}
 
 export default function Home() {
 
@@ -19,11 +34,12 @@ export default function Home() {
   const [showDebug, setShowDebug] = useState(false);
   const [scanMode, setScanMode] = useState<"camera" | "manual">("camera");
   const [apiEndpoint, setApiEndpoint] = useState<string>("/api/ocr");
+  const [modalSelectAddItem, setModalSelectAddItem] = useState<ModalSelectAddItemState>({ open: false, name: "", prices: [] });
 
   const inputNameRef = useRef<HTMLInputElement>(null);
   const inputPriceRef = useRef<HTMLInputElement>(null);
 
-  const total = useMemo(() => items.reduce((acc, i) => acc + i.price, 0), [items]);
+  const total = useMemo(() => items.reduce((acc, i) => acc + i.price * i.quantity, 0), [items]);
   const successfulCaptures = apiResults.filter(r => r.success).length;
   const successRate = apiResults.length ? (successfulCaptures / apiResults.length) * 100 : 0;
 
@@ -49,12 +65,10 @@ export default function Home() {
     console.log("Captured file:", file);
 
     handleSubmit(file).catch(err => console.error("Error in handleSubmit:", err));
-
-
   };
 
-  function addItem(name: string, price: number, source: "camera" | "manual", camPrint?: string) {
-    const newItem: ScannedItem = { id: crypto.randomUUID(), name, price, source, createdAt: Date.now(), camPrint };
+  function addItem({ name, price, source, camPrint, quantity }: AddItemParams) {
+    const newItem: ScannedItem = { id: crypto.randomUUID(), name, price, source, createdAt: Date.now(), camPrint, quantity };
     setItems(prev => [newItem, ...prev]);
   }
 
@@ -64,7 +78,12 @@ export default function Home() {
     const raw = inputPriceRef.current?.value?.replace(/,/g, ".") || "0";
     const price = parseFloat(raw);
     if (!name || !isFinite(price)) return;
-    addItem(name, price, "manual");
+    addItem({
+      name,
+      price,
+      source: "manual",
+      quantity: 1
+    });
     if (inputNameRef.current) inputNameRef.current.value = "";
     if (inputPriceRef.current) inputPriceRef.current.value = "";
   }
@@ -83,17 +102,29 @@ export default function Home() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          type: "analyzeImage",
-          instruction: "Analise a imagem e extraia os preços dos produtos, respondendo apenas com um array de números. Se não encontrar nenhum preço, responda com um array vazio.",
+          type: "listBuy",
           imageBase64: await blobToBase64(file),
         }),
       });
 
       const data = await response.json();
 
-      addItem(data.response.nome, data.response.preco, "camera", `data:image/jpeg;base64,${await blobToBase64(file)}`);
-
       console.log('retorno', data);
+      const prices = data.response.prices
+
+      if (prices && prices.length > 1) {
+        setModalSelectAddItem({ open: true, name: data.response.name, prices });
+        return
+      }
+
+      addItem({
+        name: data.response.name,
+        price: data.response.prices[0]?.price || 0,
+        source: "camera",
+        camPrint: `data:image/jpeg;base64,${await blobToBase64(file)}`,
+        quantity: data.response.prices[0]?.quantity || 1
+      });
+
     } catch (error) {
       console.error("Error:", error);
     }
@@ -101,112 +132,88 @@ export default function Home() {
 
   return (
     <div data-theme={dark ? "dark" : "light"} className={styles.app}>
-      {/* Tema */}
-      <style>{`
-        :root { --bg:#0b0c0f; --fg:#e7e9ee; --mutedBg:#14161a; --border:#262a33; --btnBg:#171a20 }
-        [data-theme='light'] { --bg:#f7f7fb; --fg:#0b0c0f; --mutedBg:#ffffff; --border:#e5e7ef; --btnBg:#ffffff }
-        button:focus, input:focus { outline: 2px solid #7aa2ff; outline-offset: 2px; }
-        .tab { user-select: none; }
-        .container { max-width: 980px; margin: 0 auto; padding: 20px; color: var(--fg); }
-        .header { display: grid; gap: 12px; }
-        .h1 { display: flex; align-items: center; gap: 8px; margin: 0; }
-        .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .rowMt8 { margin-top: 8px; }
-        .rowMt12 { margin-top: 12px; }
-        .button { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--border); background: var(--btnBg); color: var(--fg); border-radius: 10px; padding: 8px 12px; cursor: pointer; }
-        .pill { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--border); background: transparent; color: var(--fg); border-radius: 999px; padding: 8px 12px; cursor: pointer; }
-        .pillActive { background: var(--mutedBg); }
-        .section { margin-top: 12px; display: grid; gap: 12px; }
-        .card { border: 1px solid var(--border); background: var(--mutedBg); border-radius: 12px; padding: 12px; display: grid; gap: 8px; }
-        .list { display: grid; gap: 8px; }
-        .item { display: flex; align-items: center; justify-content: space-between; gap: 8px; border: 1px solid var(--border); border-radius: 10px; padding: 8px; }
-        .itemStart { align-items: flex-start; }
-        .input { border: 1px solid var(--border); background: var(--bg); color: var(--fg); border-radius: 10px; padding: 8px 10px; }
-        .inputFull { display: block; width: 100%; margin-top: 6px; }
-        .inputFlex1 { flex: 1; }
-        .inputW140 { width: 140px; }
-        .flexBetweenWrap { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-        .strongInline { display: flex; align-items: center; gap: 8px; }
-        .gridMt10 { margin-top: 10px; display: grid; gap: 8px; }
-        .itemsHeader { display: flex; align-items: center; justify-content: space-between; }
-        .gridOnly { display: grid; }
-        .gridGap4 { display: grid; gap: 4px; }
-        .rowGap6 { display: flex; gap: 6px; align-items: center; }
-        .fontSemibold { font-weight: 600; }
-        .footer { margin-top: 12px; opacity: .9; }
-        .mt8 { margin-top: 8px; }
-        .mt4fs12 { margin-top: 4px; font-size: 12px; }
-        .smallText { font-size: 12px; font-weight: 400; }
-        .muted { opacity:.8 }
-        .mono { font-variant-numeric: tabular-nums }
-        .kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; border:1px solid var(--border); padding:2px 6px; border-radius:6px }
-      `}</style>
 
-      <div className="container">
-        <header className="header">
-          <h1 className="h1">
-            <span>Leitor de Preços</span>
-          </h1>
-          <div className="row">
-            <button className="button" onClick={() => setDark(v => !v)} title="Alternar tema">
-              <CustomIcon path={dark ? ICONS.sun : ICONS.moon} /> {dark ? "Claro" : "Escuro"}
-            </button>
-            <button className="button" onClick={resetAll} title="Limpar listas">
-              <CustomIcon path={ICONS.reset} /> Resetar
-            </button>
-          </div>
-        </header>
+      <div className={styles.container}>
 
         {/* Tabs de modo */}
-        <div className="row rowMt12" role="tablist" aria-label="Modo de captura">
+        <div className={`${styles.row} ${styles.rowMt12}`} role="tablist" aria-label="Modo de captura">
           <SwithButton options={optionsModeCapture} value={scanMode} onChange={e => setScanMode(e === "camera" ? "camera" : "manual")} />
         </div>
 
         {/* Seção principal */}
-        <main className="section">
+        <main className={styles.section}>
           {scanMode === "camera" ? (
-            <section className="card">
-              <div className="flexBetweenWrap">
-                <strong className="strongInline">
+            <section className={styles.card}>
+              <div className={styles.flexBetweenWrap}>
+                <strong className={styles.strongInline}>
                   <CustomIcon path={ICONS.camera} /> Capturar o rótulo
                 </strong>
-                <div className="row">
+                <div className={styles.row}>
                   <CameraPreview onCapture={handleCapture} />
                 </div>
               </div>
             </section>
           ) : (
-            <section className="card">
-              <strong className="strongInline">
+            <section className={styles.card}>
+              <strong className={styles.strongInline}>
                 <CustomIcon path={ICONS.edit} /> Adicionar manualmente
               </strong>
-              <form onSubmit={handleManualAdd} className="row rowMt8">
-                <input ref={inputNameRef} className="input inputFlex1" placeholder="Nome do produto" />
-                <input ref={inputPriceRef} className="input inputW140" placeholder="Preço (ex: 12,90)" inputMode="decimal" />
-                <button type="submit" className="button">Adicionar</button>
+              <form onSubmit={handleManualAdd} className={`${styles.row} ${styles.rowMt8}`}>
+                <input ref={inputNameRef} className={`${styles.input} ${styles.inputFlex1}`} placeholder="Nome do produto" />
+                <input ref={inputPriceRef} className={`${styles.input} ${styles.inputW140}`} placeholder="Preço (ex: 12,90)" inputMode="decimal" />
+                <button type="submit" className={styles.button}>Adicionar</button>
               </form>
             </section>
           )}
 
           {/* Lista de itens */}
-          <section className="card">
-            <div className="itemsHeader">
+          <section className={styles.card}>
+            <div className={styles.itemsHeader}>
               <strong>Itens ({items.length})</strong>
-              <span className="mono">Total: {currencyBRL(total)}</span>
+              <span className={styles.mono}>Total: {currencyBRL(total)}</span>
             </div>
-            <div className="list">
-              {items.length === 0 && <div className="muted">Nenhum item ainda.</div>}
+            <div className={styles.list}>
+              {items.length === 0 && <div className={styles.muted}>Nenhum item ainda.</div>}
               {items.map(it => (
-                <div key={it.id} className="item">
-                  <div className="gridOnly">
-                    <span className="fontSemibold">{it.name}</span>
+                <div key={it.id} className={styles.item}>
+                  <div className={styles.gridOnly}>
+                    <span className={styles.fontSemibold}>{it.name}</span>
                     {it.camPrint && <img width={50} height={50} src={`${it.camPrint}`} alt={it.name} />}
-                    <small className="muted">{it.source === "camera" ? "📸 câmera" : "✍️ manual"} • {new Date(it.createdAt).toLocaleString()}</small>
+                    <small className={styles.muted}>{it.source === "camera" ? "📸 câmera" : "✍️ manual"} • {new Date(it.createdAt).toLocaleString()}</small>
                   </div>
-                  <div className="row">
-                    <span className="mono">{currencyBRL(it.price)}</span>
+                  <div className={styles.row}>
+                    <span className={styles.mono}>{`${currencyBRL(it.price)} un.`}</span>
+                    <div>
+                      <button
+                        className={styles.button} aria-label={`Diminuir uma unidade de ${it.name}`}
+                        onClick={() => setItems(prev => prev.map(p => p.id === it.id ? { ...p, quantity: Math.max(1, p.quantity - 1) } : p))}
+                      >
+                        -
+                      </button>
+                      <input
+                        className={styles.button}
+                        style={{ width: '50%' }}
+                        value={it.quantity}
+                        type="number"
+                        aria-label={`Adicionar mais uma unidade de ${it.name}`}
+                        onChange={(e) => {
+                          const quantity = parseInt(e.target.value);
+                          // if (isNaN(quantity) || quantity < 1) {
+                          //   setItems(prev => prev.map(p => p.id === it.id ? { ...p, quantity: 1 } : p))
+                          //   return
+                          // }
+                          setItems(prev => prev.map(p => p.id === it.id ? { ...p, quantity } : p))
+                        }}
+                      />
+                      <button
+                        className={styles.button} aria-label={`Adicionar mais uma unidade de ${it.name}`}
+                        onClick={() => setItems(prev => prev.map(p => p.id === it.id ? { ...p, quantity: p.quantity + 1 } : p))}
+                      >
+                        +
+                      </button>
+                    </div>
                     <button
-                      className="button"
+                      className={styles.button}
                       aria-label={`Remover ${it.name}`}
                       onClick={() => setItems(prev => prev.filter(p => p.id !== it.id))}
                     >
@@ -220,56 +227,66 @@ export default function Home() {
 
           {/* Painel de debug OCR */}
           {showDebug && (
-            <section className="card">
-              <strong className="strongInline">
+            <section className={styles.card}>
+              <strong className={styles.strongInline}>
                 <CustomIcon path={ICONS.bug} /> OCR / API Debug
               </strong>
-              <div className="list">
-                {apiResults.length === 0 && <div className="muted">Sem chamadas ainda.</div>}
+              <div className={styles.list}>
+                {apiResults.length === 0 && <div className={styles.muted}>Sem chamadas ainda.</div>}
                 {apiResults.map(r => (
-                  <div key={r.id} className="item itemStart">
-                    <div className="gridGap4">
-                      <div className="rowGap6">
-                        <span className="kbd">{r.status}</span>
-                        <small className="muted">{r.processingTime} ms</small>
-                        <small className="muted">{r.apiEndpoint}</small>
+                  <div key={r.id} className={`${styles.item} ${styles.itemStart}`}>
+                    <div className={styles.gridGap4}>
+                      <div className={styles.rowGap6}>
+                        <span className={styles.kbd}>{r.status}</span>
+                        <small className={styles.muted}>{r.processingTime} ms</small>
+                        <small className={styles.muted}>{r.apiEndpoint}</small>
                       </div>
-                      <div className="muted">{r.responseText}</div>
+                      <div className={styles.muted}>{r.responseText}</div>
                       <div>
-                        <small className="muted">Preços detectados: </small>
-                        <span className="mono">{r.detectedPrices.join(", ")}</span>
+                        <small className={styles.muted}>Preços detectados: </small>
+                        <span className={styles.mono}>{r.detectedPrices.join(", ")}</span>
                       </div>
                       <div>
-                        <small className="muted">Melhor preço: </small>
-                        <strong className="mono">{r.bestPrice != null ? currencyBRL(r.bestPrice) : "—"}</strong>
+                        <small className={styles.muted}>Melhor preço: </small>
+                        <strong className={styles.mono}>{r.bestPrice != null ? currencyBRL(r.bestPrice) : "—"}</strong>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="muted mt8">
+              <div className={`${styles.muted} ${styles.mt8}`}>
                 Capturas bem-sucedidas: {successfulCaptures}/{apiResults.length} — {successRate.toFixed(0)}%
               </div>
             </section>
           )}
         </main>
 
-        <footer className="footer">
+        <footer className={styles.footer}>
 
         </footer>
       </div>
+      {/* // Modal para selecionar preço quando houver mais de uma opção */}
+      <Modal open={modalSelectAddItem.open} onClose={() => setModalSelectAddItem({ open: false, name: "", prices: [] })} setOpen={(open) => setModalSelectAddItem(prev => ({ ...prev, open }))}>
+        <div className={styles.modalContent}>
+          <h2>Selecione Umas das opções</h2>
+          {
+            modalSelectAddItem.prices.map((p, index) => (
+              <button key={index} className={styles.button} onClick={() => {
+                addItem({
+                  name: modalSelectAddItem.name,
+                  price: p.price, source: "camera",
+                  camPrint: undefined,
+                  quantity: p.quantity
+                });
+                setModalSelectAddItem({ open: false, name: "", prices: [] });
+              }}>
+                {p.quantity} por {currencyBRL(p.price)}
+              </button>
+            ))
+          }
+
+        </div>
+      </Modal>
     </div>
   );
 }
-function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const result = reader.result as string;
-      resolve(result.split(",")[1]); // Extract base64 part after the data URI prefix
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-

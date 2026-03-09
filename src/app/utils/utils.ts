@@ -6,4 +6,17 @@ function currencyBRL(n: number) {
   }
 }
 
-export { currencyBRL };
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      resolve(result.split(",")[1]); // Extract base64 part after the data URI prefix
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+export { currencyBRL, blobToBase64 };
+

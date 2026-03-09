@@ -1,0 +1,13 @@
+.floatingActionsMenu {
+  position: fixed;
+  bottom: 15px;
+  left: 15px;
+  background: var(--bg-modal-floating);
+  border-radius: var(--floatingRadius);
+  width: calc(100% - 30px);
+  height: 5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+}

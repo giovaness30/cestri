@@ -1,0 +1,27 @@
+@use "../tokens" as *;
+
+[data-theme="dark"] {
+  // BACKGROUND
+  --bg: #{$gray-900};
+  --bg-card: #{$gray-800};
+
+  // TEXT
+  --text-primary: #{$color-text-primary-dark};
+  --text-secondary: #{$color-text-secondary-dark};
+
+  // BRAND
+  --primary: #{$blue-500};
+  --primary-hover: #{$blue-600};
+  --secondary: #{$violet-500};
+
+  // FEEDBACK
+  --success: #{$emerald-500};
+  --error: #{$red-500};
+  --warning: #{$amber-500};
+
+  // BORDER
+  --border: #{$gray-600};
+
+  // SHADOW
+  --shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
