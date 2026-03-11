@@ -1,0 +1,141 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  z-index: 30;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.brandIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--primary);
+}
+
+.brandText {
+  font-family: var(--font-data), sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+}
+
+.brandAccent {
+  color: var(--primary);
+}
+
+.menuToggle {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 0.75rem;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+
+  &:active {
+    background-color: color-mix(in srgb, var(--border) 40%, transparent);
+  }
+}
+
+.menuToggleIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--text-primary);
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: color-mix(in srgb, var(--text-primary) 20%, transparent);
+  z-index: 40;
+}
+
+.dropdown {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 56px;
+  z-index: 50;
+  margin: 0 auto;
+  max-width: 32rem;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 1rem;
+  border-bottom-right-radius: 1rem;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.menuList {
+  padding: 0.5rem 0;
+}
+
+.menuItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  transition: background-color 150ms ease, color 150ms ease;
+  border: none;
+  background: transparent;
+  touch-action: manipulation;
+}
+
+.menuItemActive {
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
+}
+
+.menuItemReady {
+  color: var(--text-primary);
+
+  &:active {
+    background-color: color-mix(in srgb, var(--border) 40%, transparent);
+  }
+}
+
+.menuItemDisabled {
+  color: color-mix(in srgb, var(--text-secondary) 50%, transparent);
+  cursor: default;
+}
+
+.menuItemIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.menuItemLabel {
+  font-family: var(--font-data), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  flex: 1;
+  text-align: left;
+}
+
+.soonBadge {
+  font-size: 10px;
+  font-family: var(--font-data), sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background-color: var(--bg-modal-floating);
+  color: var(--text-secondary);
+}

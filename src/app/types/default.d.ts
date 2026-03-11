@@ -21,3 +21,16 @@ export type ApiResult = {
   success: boolean;
   apiEndpoint: string;
 };
+
+export type ApiBuyListResponse = {
+  confidence: number;
+  hasPriceTag: boolean;
+  isValidProduct: boolean;
+  products: {
+    name: string,
+    prices: {
+        price: number,
+        quantity: number
+    }[]     
+  }[];
+}

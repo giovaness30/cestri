@@ -12,6 +12,13 @@ name: z.string(),
   )
 });
 
+const ImageAnalysisSchema = z.object({
+  hasPriceTag: z.boolean(),
+  isValidProduct: z.boolean(),
+  confidence: z.number(),
+  products: z.array(productSchema)
+});
+
 
 interface AnalyzeImageInput {
   instruction: string;
@@ -36,7 +43,7 @@ export const analyzeImageListBuyFlow = ai.defineFlow(
       const response = await ai.generate({
   prompt: [{ media: { url: `data:image/jpeg;base64,${imageBase64}` } }, { text: instruction }],
   output: {
-    schema: productSchema
+    schema: ImageAnalysisSchema
   }
 });
       

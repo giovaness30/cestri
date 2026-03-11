@@ -72,11 +72,13 @@ Regras:
 - Se existir produto mas não houver preço, retornar prices vazio
 - Se a imagem não representar um produto sendo vendido, retornar isValidProduct = false
 - Se houver múltiplos produtos, retornar todos
+- Se não tiver preço em nenhum lugar, retornar hasPriceTag = false
 
 Regras para promoções por quantidade:
 
 - Se aparecer "A partir de X UND", "A partir de X unidades", "Leve X", "Na compra de X", isso indica que o preço promocional só vale para quantity = X ou mais.
 - Quando encontrar esse padrão, utilize X como quantity.
+
 - Exemplo:
   "A partir de 3 UND - R$ 5,99" → quantity = 3, price = 5.99
 

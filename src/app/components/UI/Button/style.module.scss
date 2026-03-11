@@ -1,0 +1,137 @@
+.buttonBase {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background-color 150ms ease, color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+  border: none;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 30%, transparent);
+  }
+
+  &:disabled {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  svg {
+    pointer-events: none;
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+  }
+}
+
+.variantDefault {
+  background-color: var(--primary);
+  color: #fff;
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--primary) 90%, black);
+  }
+}
+
+.variantDestructive {
+  background-color: var(--error);
+  color: #fff;
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--error) 90%, black);
+  }
+}
+
+.variantOutline {
+  border: 1px solid var(--border);
+  background-color: var(--bg);
+  color: var(--text-primary);
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--primary) 8%, var(--bg));
+    color: var(--text-primary);
+  }
+}
+
+.variantSecondary {
+  background-color: var(--secondary);
+  color: #fff;
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--secondary) 80%, black);
+  }
+}
+
+.variantGhost {
+  background-color: transparent;
+  color: var(--text-primary);
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--primary) 8%, transparent);
+  }
+}
+
+.variantLink {
+  background: transparent;
+  color: var(--primary);
+  text-underline-offset: 4px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.variantCapture {
+  background-color: var(--primary);
+  color: #fff;
+  font-family: var(--font-data), sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--primary) 80%, black);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.variantSuccess {
+  background-color: var(--success);
+  color: #fff;
+  font-family: var(--font-data), sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.sizeDefault {
+  height: 2.5rem;
+  padding: 0.5rem 1rem;
+}
+
+.sizeSm {
+  height: 2.25rem;
+  border-radius: 0.375rem;
+  padding: 0 0.75rem;
+}
+
+.sizeLg {
+  height: 2.75rem;
+  border-radius: 0.375rem;
+  padding: 0 2rem;
+}
+
+.sizeIcon {
+  width: 2.5rem;
+  height: 2.5rem;
+}

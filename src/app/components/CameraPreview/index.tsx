@@ -1,29 +1,57 @@
-import { useEffect, useRef, useState } from "react";
+"use client";
+
+import { useGlobal } from "@/providers/global-context";
+import { useEffect, useRef } from "react";
 
 type Props = {
   onCapture?: (file: Blob) => void; // função que recebe a foto
+  activeCamera?: "environment" | "user"; // câmera traseira ou frontal
 };
 
-export default function CameraPreview({ onCapture }: Props) {
+export default function CameraPreview({ onCapture, activeCamera = "environment" }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isActive, setIsActive] = useState(false);
+  const isStartingRef = useRef(false);
+
+  const { showPreviewImage, clickPicture, setClickPicture } = useGlobal()
+
+  function isExpectedPlayInterruptionError(err: unknown) {
+    if (!(err instanceof Error)) return false;
+
+    const message = err.message.toLowerCase();
+    return (
+      message.includes("play() request was interrupted") ||
+      message.includes("interrupted by a new load request") ||
+      err.name === "AbortError"
+    );
+  }
 
   async function startCamera() {
+    if (isStartingRef.current) return;
+    isStartingRef.current = true;
+
     try {
+      stopCamera();
+
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" } },
+        video: { facingMode: { ideal: activeCamera } },
         audio: false,
       });
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
-        setIsActive(true);
       }
     } catch (err) {
+      if (isExpectedPlayInterruptionError(err)) {
+        console.warn("Reproducao de video interrompida por nova carga de stream.");
+        return;
+      }
+
       console.error("Erro ao acessar câmera:", err);
       alert(`Não foi possível acessar a câmera. ${err instanceof Error ? err.message : "Erro desconhecido"}`);
+    } finally {
+      isStartingRef.current = false;
     }
   }
 
@@ -35,18 +63,19 @@ export default function CameraPreview({ onCapture }: Props) {
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
-    setIsActive(false);
   }
 
   async function capturePhoto() {
+
     if (!videoRef.current || !canvasRef.current) return;
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
 
     // ajusta tamanho do canvas igual ao do vídeo
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    // canvas.width = video.videoWidth;
+    // canvas.height = video.videoHeight;
+    console.log('capturePhoto');
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
@@ -58,51 +87,37 @@ export default function CameraPreview({ onCapture }: Props) {
     canvas.toBlob(blob => {
       if (blob) {
         // envia foto para função externa
+        console.log('foto Captura', blob);
+
         if (onCapture) onCapture(blob);
-        stopCamera()
+
       }
     }, "image/jpeg", 0.9);
   }
 
   useEffect(() => {
-    return () => stopCamera(); // encerra ao desmontar
-  }, []);
+    if (showPreviewImage) {
+      startCamera();
+    } else {
+      stopCamera();
+    }
+  }, [showPreviewImage, activeCamera]);
+
+  useEffect(() => {
+    if (clickPicture) {
+      capturePhoto();
+    }
+  }, [clickPicture]);
 
   return (
-    <div
-      style={{
-        border: "2px solid #444",
-        borderRadius: "12px",
-        padding: "8px",
-        display: "grid",
-        gap: "8px",
-        maxWidth: "400px",
-      }}
-    >
+    <>
       <video
         ref={videoRef}
         autoPlay
         playsInline
-        style={{ width: "100%", borderRadius: "8px", background: "#000" }}
+        style={{ position: 'relative', zIndex: 0 }}
       />
       <canvas ref={canvasRef} style={{ display: "none" }} />
-
-      <div style={{ display: "flex", gap: "8px" }}>
-        {!isActive ? (
-          <button onClick={startCamera} style={{ flex: 1, padding: "8px" }}>
-            Abrir Câmera
-          </button>
-        ) : (
-          <>
-            <button onClick={capturePhoto} style={{ flex: 1, padding: "8px" }}>
-              📸 Tirar Foto
-            </button>
-            <button onClick={stopCamera} style={{ flex: 1, padding: "8px" }}>
-              Fechar Câmera
-            </button>
-          </>
-        )}
-      </div>
-    </div>
+    </>
   );
 }
