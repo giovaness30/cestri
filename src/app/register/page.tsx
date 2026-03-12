@@ -5,21 +5,21 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
 export default function Register() {
-  const supabase = createClient()
+  // const supabase = createClient()
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
   const handleRegister = async () => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    })
+    // const { error } = await supabase.auth.signUp({
+    // email,
+    // password,
+    // })
 
-    if (error) {
-      alert(error.message)
-      return
-    }
+    // if (error) {
+    // alert(error.message)
+    // return
+    // }
 
     router.push('/dashboard')
   }
