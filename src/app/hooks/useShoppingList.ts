@@ -48,9 +48,18 @@ function genId() {
 }
 
 export function useShoppingLists() {
-  const [lists, setLists] = useState<ShoppingListData[]>(loadLists);
+  const [lists, setLists] = useState<ShoppingListData[]>([]);
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  useEffect(() => saveLists(lists), [lists]);
+  useEffect(() => {
+    setLists(loadLists());
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated) return;
+    saveLists(lists);
+  }, [lists, isHydrated]);
 
   const createList = useCallback((name: string): string => {
     const id = genId();
@@ -73,19 +82,31 @@ export function useShoppingLists() {
 }
 
 export function useActiveList() {
-  const [lists, setLists] = useState<ShoppingListData[]>(loadLists);
-  const [activeId, setActiveId] = useState<string | null>(
-    () => (typeof window === "undefined" ? null : localStorage.getItem(ACTIVE_KEY))
-  );
+  const [lists, setLists] = useState<ShoppingListData[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  useEffect(() => saveLists(lists), [lists]);
   useEffect(() => {
+    setLists(loadLists());
+    setActiveId(typeof window === "undefined" ? null : localStorage.getItem(ACTIVE_KEY));
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated) return;
+    saveLists(lists);
+  }, [lists, isHydrated]);
+
+  useEffect(() => {
+    if (!isHydrated) return;
     if (activeId) localStorage.setItem(ACTIVE_KEY, activeId);
     else localStorage.removeItem(ACTIVE_KEY);
-  }, [activeId]);
+  }, [activeId, isHydrated]);
 
   // Auto-create a list if none active exists
   useEffect(() => {
+    if (!isHydrated) return;
+
     const activeLists = lists.filter((l) => !l.completed);
     if (activeLists.length === 0 && !lists.some((l) => !l.completed)) {
       const id = genId();
@@ -102,7 +123,7 @@ export function useActiveList() {
       const first = lists.find((l) => !l.completed);
       setActiveId(first?.id || null);
     }
-  }, [lists, activeId]);
+  }, [lists, activeId, isHydrated]);
 
   const activeList = lists.find((l) => l.id === activeId) || null;
 

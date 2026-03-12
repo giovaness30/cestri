@@ -3,14 +3,8 @@ import "./styles/main.scss";
 import { Providers } from "@/providers";
 
 export const metadata: Metadata = {
-  title: "CESTRI - Sua cesta inteligente",
-  description: "CESTRI - Sua cesta - agora Inteligente! Descubra o poder da IA para otimizar suas compras, economizar tempo e dinheiro. Com a CESTRI, sua cesta de compras se torna inteligente, sugerindo produtos, comparando preços e garantindo a melhor experiência de compra online. Simplifique suas compras com a CESTRI - onde a inteligência encontra a conveniência!",
-  // viewport: {
-  // width: "device-width",
-  // initialScale: 1,
-  // maximumScale: 1,
-  // userScalable: false,
-  // },
+  title: "Cestri - Sua cesta inteligente",
+  description: "Cestri - Sua cesta - agora Inteligente! Descubra o poder da IA para otimizar suas compras, economizar tempo e dinheiro. Com a Cestri, sua cesta de compras se torna inteligente, sugerindo produtos, comparando preços e garantindo a melhor experiência de compra. Simplifique suas compras com a Cestri - onde a inteligência encontra a conveniência!"
 };
 
 export const viewport = {
