@@ -34,3 +34,38 @@ export type ApiBuyListResponse = {
     }[]     
   }[];
 }
+
+// Tipos para listas concluídas e histórico de preços
+
+export type LocationInfo = {
+  name: string;
+  address?: string;
+  lat?: number;
+  lng?: number;
+};
+
+export type CompletedItem = {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+};
+
+export type CompletedList = {
+  id: string;
+  name: string;
+  items: CompletedItem[];
+  completedAt: string;
+  location: LocationInfo;
+  totalSpent: number;
+};
+
+export type PriceRecord = {
+  itemName: string;
+  normalizedName: string;
+  price: number;
+  quantity: number;
+  location: string;
+  date: string;
+  listId: string;
+};

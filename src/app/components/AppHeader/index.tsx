@@ -11,13 +11,15 @@ import {
   Bell,
   Settings,
   Share2,
+  CheckCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import style from "./style.module.scss";
 
 const menuItems = [
   { icon: List, label: "Minhas Listas", path: "/lists", ready: true },
-  { icon: BarChart3, label: "Comparar Preços", path: "/compare", ready: false },
+  { icon: CheckCircle, label: "Listas Concluídas", path: "/completed", ready: true },
+  { icon: BarChart3, label: "Comparar Preços", path: "/compare", ready: true },
   { icon: Tags, label: "Ofertas & Promoções", path: "/deals", ready: false },
   { icon: MapPin, label: "Mercados Próximos", path: "/stores", ready: false },
   { icon: Bell, label: "Alertas de Preço", path: "/alerts", ready: false },

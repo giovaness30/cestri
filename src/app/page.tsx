@@ -2,33 +2,64 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronUp, ChevronDown, List } from "lucide-react";
+import { ChevronUp, ChevronDown, CheckCircle } from "lucide-react";
 import CameraViewfinder from "./components/CameraViewFinder";
 import CaptureBar from "./components/CaptureBar";
 import ShoppingList from "./components/ShoppingList";
 import ManualAddSheet from "./components/ManualAddSheet";
 import PriceCaptureSheet from "./components/PriceCaptureSheet";
-import { useRouter } from "next/navigation";
+import CompleteListModal from "./components/CompleteListModal";
 import { useActiveList } from "./hooks/useShoppingList";
+import { useCompletedLists } from "./hooks/useCompletedLists";
+import { usePriceHistory } from "./hooks/usePriceHistory";
 import AppHeader from "./components/AppHeader";
 import style from "./page.module.scss";
 import { blobToBase64 } from "./utils/utils";
-import { ApiBuyListResponse } from "./types/default";
+import { ApiBuyListResponse, LocationInfo } from "./types/default";
 
 const Index = () => {
   const [expanded, setExpanded] = useState(false);
   const [manualOpen, setManualOpen] = useState(false);
   const [priceCapture, setPriceCapture] = useState<{ id: string; name: string } | null>(null);
-  const [showImage, setShowImage] = useState(false);
+  const [completeModalOpen, setCompleteModalOpen] = useState(false);
 
   const {
     activeList,
+    lists,
     addItem,
     toggleItem,
     removeItem,
     updateQuantity,
     updatePrice,
+    deleteList,
+    createList,
   } = useActiveList();
+
+  const { completeList } = useCompletedLists();
+  const { addPriceRecordsFromList } = usePriceHistory();
+
+  // Check if list can be completed (has at least one item with price)
+  const canCompleteList = activeList?.items.some((item) => {
+    const price = parseFloat(item.price);
+    return !isNaN(price) && price > 0;
+  }) || false;
+
+  const handleCompleteList = (location: LocationInfo) => {
+    if (!activeList) return;
+
+    // Save the completed list
+    const completedList = completeList(activeList.name, activeList.items, location);
+
+    // Add price records to history
+    addPriceRecordsFromList(completedList);
+
+    // Delete the current list and create a new empty one
+    const currentId = activeList.id;
+    createList("Nova Lista");
+    deleteList(currentId);
+
+    setCompleteModalOpen(false);
+  };
 
   const handleCapture = async (file: Blob) => {
     // Aqui você pode processar a foto capturada, por exemplo, enviando para um OCR ou API de reconhecimento de produtos
@@ -106,6 +137,15 @@ const Index = () => {
             )}
           </button>
 
+          {canCompleteList && (
+            <button
+              onClick={() => setCompleteModalOpen(true)}
+              className={style.completeButton}
+            >
+              <CheckCircle className={style.completeIcon} />
+              <span>Concluir</span>
+            </button>
+          )}
         </div>
 
         <div className={style.listContent}>
