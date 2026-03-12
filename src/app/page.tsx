@@ -8,7 +8,9 @@ import CaptureBar from "./components/CaptureBar";
 import ShoppingList from "./components/ShoppingList";
 import ManualAddSheet from "./components/ManualAddSheet";
 import PriceCaptureSheet from "./components/PriceCaptureSheet";
-import { useRouter } from "next/navigation";
+import CompleteListSheet from "./components/CompleteListSheet";
+import { usePurchaseHistory } from "./hooks/usePurchaseHistory";
+import { GeoLocation } from "./types/default";
 import { useActiveList } from "./hooks/useShoppingList";
 import AppHeader from "./components/AppHeader";
 import style from "./page.module.scss";
@@ -19,16 +21,21 @@ const Index = () => {
   const [expanded, setExpanded] = useState(false);
   const [manualOpen, setManualOpen] = useState(false);
   const [priceCapture, setPriceCapture] = useState<{ id: string; name: string } | null>(null);
-  const [showImage, setShowImage] = useState(false);
+  const [completeListOpen, setCompleteListOpen] = useState(false);
 
   const {
     activeList,
+    lists,
     addItem,
     toggleItem,
     removeItem,
     updateQuantity,
     updatePrice,
+    deleteList,
+    createList,
   } = useActiveList();
+
+  const { completeList } = usePurchaseHistory();
 
   const handleCapture = async (file: Blob) => {
     // Aqui você pode processar a foto capturada, por exemplo, enviando para um OCR ou API de reconhecimento de produtos
@@ -69,6 +76,36 @@ const Index = () => {
       console.error("Error:", error);
     }
   };
+
+  const handleCompleteList = (
+    marketName: string,
+    purchaseDate: string,
+    location?: GeoLocation,
+    notes?: string,
+    receiptImage?: string
+  ) => {
+    if (!activeList) return;
+
+    // Salva a lista no histórico
+    completeList(activeList, marketName, purchaseDate, location, notes, receiptImage);
+
+    // Deleta a lista atual e cria uma nova
+    deleteList(activeList.id);
+    createList("Minha Lista");
+
+    setCompleteListOpen(false);
+  };
+
+  // Calcula total para o sheet de concluir
+  const listTotal = activeList?.items.reduce((sum, i) => {
+    if (!i.price) return sum;
+    const n = parseFloat(i.price.replace(/[^\d,.-]/g, "").replace(",", "."));
+    return isNaN(n) ? sum : sum + n * i.quantity;
+  }, 0) || 0;
+
+  const checkedItemsCount = activeList?.items.filter(
+    (i) => i.checked && i.price && i.price.trim() !== ""
+  ).length || 0;
 
   return (
     <div className={style.page}>
@@ -116,8 +153,8 @@ const Index = () => {
             onUpdateQuantity={updateQuantity}
             onPriceClick={(id, name) => {
               setPriceCapture({ id, name })
-            }
-            }
+            }}
+            onCompleteList={() => setCompleteListOpen(true)}
           />
         </div>
       </motion.div>
@@ -140,6 +177,16 @@ const Index = () => {
             setPriceCapture(null);
           }
         }}
+      />
+
+      {/* Complete list sheet */}
+      <CompleteListSheet
+        open={completeListOpen}
+        listName={activeList?.name || "Minha Lista"}
+        totalItems={checkedItemsCount}
+        totalAmount={listTotal}
+        onClose={() => setCompleteListOpen(false)}
+        onComplete={handleCompleteList}
       />
     </div>
   );

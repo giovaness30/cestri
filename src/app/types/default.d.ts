@@ -34,3 +34,31 @@ export type ApiBuyListResponse = {
     }[]     
   }[];
 }
+
+// Tipos para histórico de compras
+export type CompletedShoppingItem = {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+};
+
+export type GeoLocation = {
+  latitude: number;
+  longitude: number;
+  accuracy?: number;
+};
+
+export type CompletedShoppingList = {
+  id: string;
+  listId: string; // ID da lista original
+  listName: string;
+  items: CompletedShoppingItem[];
+  marketName: string;
+  purchaseDate: string; // ISO string
+  location?: GeoLocation;
+  notes?: string;
+  receiptImage?: string; // base64 da imagem do cupom fiscal
+  totalAmount: number;
+  createdAt: string;
+};

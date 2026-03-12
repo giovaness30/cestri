@@ -13,12 +13,15 @@ import {
   ShoppingCart,
   Sparkles,
   Check,
+  Calendar,
+  History,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useActiveList } from "../hooks/useShoppingList";
+import { usePurchaseHistory } from "../hooks/usePurchaseHistory";
 import style from "./style.module.scss";
 
-// Dados mockados de preços de mercados
+// Dados mockados de preços de mercados (fallback)
 const mockStoresPrices: Record<string, { store: string; price: number; distance: string }[]> = {
   "Arroz": [
     { store: "Mercado Extra", price: 24.90, distance: "1.2 km" },
@@ -65,21 +68,72 @@ function getStorePrices(productName: string) {
   return normalizedName ? mockStoresPrices[normalizedName] : generateMockPrices(productName);
 }
 
+interface PriceHistoryItem {
+  store: string;
+  price: number;
+  date: string;
+  isHistorical: boolean;
+}
+
 interface ProductCompareCardProps {
   name: string;
   quantity: number;
   onSelectStore: (store: string, price: number) => void;
   selectedStore?: string;
+  priceHistory?: { marketName: string; price: number; date: string }[];
 }
 
-const ProductCompareCard = ({ name, quantity, onSelectStore, selectedStore }: ProductCompareCardProps) => {
+const ProductCompareCard = ({ name, quantity, onSelectStore, selectedStore, priceHistory = [] }: ProductCompareCardProps) => {
   const [expanded, setExpanded] = useState(false);
-  const prices = useMemo(() => getStorePrices(name), [name]);
+  
+  // Combina dados do histórico real com dados mockados
+  const prices = useMemo(() => {
+    const historicalPrices: PriceHistoryItem[] = priceHistory.map(h => ({
+      store: h.marketName,
+      price: h.price,
+      date: h.date,
+      isHistorical: true,
+    }));
+
+    // Agrupa por mercado e pega o preço mais recente
+    const groupedByStore: Record<string, PriceHistoryItem> = {};
+    historicalPrices.forEach(h => {
+      if (!groupedByStore[h.store] || new Date(h.date) > new Date(groupedByStore[h.store].date)) {
+        groupedByStore[h.store] = h;
+      }
+    });
+
+    const uniqueHistorical = Object.values(groupedByStore);
+
+    // Se não tem histórico, usa dados mockados
+    if (uniqueHistorical.length === 0) {
+      return getStorePrices(name).map(p => ({
+        ...p,
+        date: "",
+        isHistorical: false,
+      }));
+    }
+
+    // Adiciona dados mockados para lojas que não têm histórico
+    const historicalStores = new Set(uniqueHistorical.map(h => h.store));
+    const mockPrices = getStorePrices(name)
+      .filter(p => !historicalStores.has(p.store))
+      .map(p => ({
+        ...p,
+        date: "",
+        isHistorical: false,
+      }));
+
+    return [...uniqueHistorical, ...mockPrices];
+  }, [name, priceHistory]);
+
   const sortedPrices = useMemo(() => [...prices].sort((a, b) => a.price - b.price), [prices]);
   const bestPrice = sortedPrices[0];
   const worstPrice = sortedPrices[sortedPrices.length - 1];
   const savings = worstPrice.price - bestPrice.price;
   const savingsPercent = Math.round((savings / worstPrice.price) * 100);
+  
+  const hasHistoricalData = prices.some(p => p.isHistorical);
 
   return (
     <motion.div
@@ -101,9 +155,17 @@ const ProductCompareCard = ({ name, quantity, onSelectStore, selectedStore }: Pr
             <TrendingDown className={style.trendIcon} />
             <span>R$ {bestPrice.price.toFixed(2).replace(".", ",")}</span>
           </div>
-          <span className={style.savingsTag}>
-            Economize {savingsPercent}%
-          </span>
+          <div className={style.tagsRow}>
+            <span className={style.savingsTag}>
+              Economize {savingsPercent}%
+            </span>
+            {hasHistoricalData && (
+              <span className={style.historyTag}>
+                <History className={style.historyIcon} />
+                Histórico
+              </span>
+            )}
+          </div>
         </div>
         <div className={style.expandIconWrapper}>
           {expanded ? (
@@ -128,6 +190,9 @@ const ProductCompareCard = ({ name, quantity, onSelectStore, selectedStore }: Pr
                 const isBest = index === 0;
                 const isWorst = index === sortedPrices.length - 1;
                 const isSelected = selectedStore === item.store;
+                const formattedDate = item.date 
+                  ? new Date(item.date).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })
+                  : null;
 
                 return (
                   <button
@@ -139,7 +204,14 @@ const ProductCompareCard = ({ name, quantity, onSelectStore, selectedStore }: Pr
                       <Store className={style.storeIcon} />
                       <div>
                         <p className={style.storeName}>{item.store}</p>
-                        <p className={style.storeDistance}>{item.distance}</p>
+                        {item.isHistorical && formattedDate ? (
+                          <p className={style.storeDate}>
+                            <Calendar className={style.calendarIcon} />
+                            {formattedDate}
+                          </p>
+                        ) : (
+                          <p className={style.storeEstimate}>Preço estimado</p>
+                        )}
                       </div>
                     </div>
                     <div className={style.storePriceWrapper}>
@@ -178,9 +250,18 @@ const ProductCompareCard = ({ name, quantity, onSelectStore, selectedStore }: Pr
 const ComparePage = () => {
   const router = useRouter();
   const { activeList } = useActiveList();
+  const { history, getItemPriceHistory } = usePurchaseHistory();
   const [selectedStores, setSelectedStores] = useState<Record<string, { store: string; price: number }>>({});
 
   const items = activeList?.items || [];
+  
+  // Obtém histórico de preços para cada item
+  const itemsWithHistory = useMemo(() => {
+    return items.map(item => ({
+      ...item,
+      priceHistory: getItemPriceHistory(item.name),
+    }));
+  }, [items, getItemPriceHistory]);
 
   const handleSelectStore = (productId: string, store: string, price: number) => {
     setSelectedStores(prev => ({
@@ -312,13 +393,14 @@ const ComparePage = () => {
           </div>
         ) : (
           <div className={style.productsList}>
-            {items.map((item) => (
+            {itemsWithHistory.map((item) => (
               <ProductCompareCard
                 key={item.id}
                 name={item.name}
                 quantity={item.quantity}
                 selectedStore={selectedStores[item.id]?.store}
                 onSelectStore={(store, price) => handleSelectStore(item.id, store, price)}
+                priceHistory={item.priceHistory}
               />
             ))}
           </div>

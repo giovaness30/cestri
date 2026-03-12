@@ -1,4 +1,4 @@
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, CheckCircle } from "lucide-react";
 import ShoppingListItem from "../ShoppingListItem";
 import { ShoppingListData } from "@/app/hooks/useShoppingList";
 import style from "./style.module.scss";
@@ -9,11 +9,20 @@ interface ShoppingListProps {
   onRemove: (id: string) => void;
   onUpdateQuantity: (id: string, delta: number) => void;
   onPriceClick: (id: string, name: string) => void;
+  onCompleteList?: () => void;
 }
 
-const ShoppingList = ({ list, onToggle, onRemove, onUpdateQuantity, onPriceClick }: ShoppingListProps) => {
+const ShoppingList = ({ list, onToggle, onRemove, onUpdateQuantity, onPriceClick, onCompleteList }: ShoppingListProps) => {
   const items = list?.items || [];
   const checkedCount = items.filter((i) => i.checked).length;
+  
+  // Verifica se todos os itens estão marcados e têm preço
+  const allItemsReady = items.length > 0 && items.every(
+    (i) => i.checked && i.price && i.price.trim() !== ""
+  );
+  const checkedWithPrice = items.filter(
+    (i) => i.checked && i.price && i.price.trim() !== ""
+  ).length;
 
   const total = items.reduce((sum, i) => {
     if (!i.price) return sum;
@@ -44,6 +53,20 @@ const ShoppingList = ({ list, onToggle, onRemove, onUpdateQuantity, onPriceClick
             R$ {total.toFixed(2).replace(".", ",")}
           </span>
         </div>
+        {onCompleteList && items.length > 0 && (
+          <button
+            onClick={onCompleteList}
+            disabled={!allItemsReady}
+            className={`${style.completeButton} ${allItemsReady ? style.completeButtonReady : ''}`}
+            title={
+              allItemsReady
+                ? "Concluir lista"
+                : `${checkedWithPrice}/${items.length} itens com preço marcados`
+            }
+          >
+            <CheckCircle className={style.completeIcon} />
+          </button>
+        )}
       </div>
 
       <div className={style.divider} />

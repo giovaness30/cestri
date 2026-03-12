@@ -65,6 +65,55 @@
   color: var(--primary);
 }
 
+.completeButton {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  background-color: color-mix(in srgb, var(--text-secondary) 10%, transparent);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 150ms ease;
+  margin-left: 0.75rem;
+  flex-shrink: 0;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+}
+
+.completeButtonReady {
+  background-color: color-mix(in srgb, var(--success) 15%, transparent);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--success) 40%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--success) 0%, transparent);
+  }
+}
+
+.completeIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--text-secondary);
+
+  .completeButtonReady & {
+    color: var(--success);
+  }
+}
+
 .divider {
   height: 1px;
   background-color: var(--border);
