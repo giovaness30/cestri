@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useEffect, useCallback } from "react";
 
 export interface ShoppingItem {
@@ -10,35 +8,37 @@ export interface ShoppingItem {
   checked: boolean;
 }
 
+export interface CompletionData {
+  completedAt: string;
+  storeName: string;
+  notes: string;
+  receiptPhoto?: string; // base64 data URL
+  location?: { lat: number; lng: number };
+}
+
 export interface ShoppingListData {
   id: string;
   name: string;
   items: ShoppingItem[];
   createdAt: string;
   updatedAt: string;
+  completed?: boolean;
+  completion?: CompletionData;
 }
 
 const LISTS_KEY = "shopping-lists";
 const ACTIVE_KEY = "active-list-id";
 
 function loadLists(): ShoppingListData[] {
-  if (typeof window === "undefined") return [];
-
   try {
-    return JSON.parse(window.localStorage.getItem(LISTS_KEY) || "[]");
+    return JSON.parse(localStorage.getItem(LISTS_KEY) || "[]");
   } catch {
     return [];
   }
 }
 
 function saveLists(lists: ShoppingListData[]) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(LISTS_KEY, JSON.stringify(lists));
-}
-
-function loadActiveId(): string | null {
-  if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(ACTIVE_KEY);
+  localStorage.setItem(LISTS_KEY, JSON.stringify(lists));
 }
 
 function genId() {
@@ -46,18 +46,9 @@ function genId() {
 }
 
 export function useShoppingLists() {
-  const [lists, setLists] = useState<ShoppingListData[]>([]);
-  const [isHydrated, setIsHydrated] = useState(false);
+  const [lists, setLists] = useState<ShoppingListData[]>(loadLists);
 
-  useEffect(() => {
-    setLists(loadLists());
-    setIsHydrated(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isHydrated) return;
-    saveLists(lists);
-  }, [isHydrated, lists]);
+  useEffect(() => saveLists(lists), [lists]);
 
   const createList = useCallback((name: string): string => {
     const id = genId();
@@ -80,34 +71,22 @@ export function useShoppingLists() {
 }
 
 export function useActiveList() {
-  const [lists, setLists] = useState<ShoppingListData[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [isHydrated, setIsHydrated] = useState(false);
+  const [lists, setLists] = useState<ShoppingListData[]>(loadLists);
+  const [activeId, setActiveId] = useState<string | null>(
+    () => localStorage.getItem(ACTIVE_KEY)
+  );
 
+  useEffect(() => saveLists(lists), [lists]);
   useEffect(() => {
-    setLists(loadLists());
-    setActiveId(loadActiveId());
-    setIsHydrated(true);
-  }, []);
+    if (activeId) localStorage.setItem(ACTIVE_KEY, activeId);
+    else localStorage.removeItem(ACTIVE_KEY);
+  }, [activeId]);
 
+  // Auto-create a list if none active exists
   useEffect(() => {
-    if (!isHydrated) return;
-    saveLists(lists);
-  }, [isHydrated, lists]);
-
-  useEffect(() => {
-    if (!isHydrated || typeof window === "undefined") return;
-
-    if (activeId) window.localStorage.setItem(ACTIVE_KEY, activeId);
-    else window.localStorage.removeItem(ACTIVE_KEY);
-  }, [isHydrated, activeId]);
-
-  // Auto-create a list if none exists
-  useEffect(() => {
-    if (!isHydrated) return;
-
-    if (lists.length === 0) {
-      const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    const activeLists = lists.filter((l) => !l.completed);
+    if (activeLists.length === 0 && !lists.some((l) => !l.completed)) {
+      const id = genId();
       const newList: ShoppingListData = {
         id,
         name: "Minha Lista",
@@ -115,12 +94,13 @@ export function useActiveList() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      setLists([newList]);
+      setLists((prev) => [newList, ...prev]);
       setActiveId(id);
-    } else if (!activeId || !lists.find((l) => l.id === activeId)) {
-      setActiveId(lists[0].id);
+    } else if (!activeId || !lists.find((l) => l.id === activeId && !l.completed)) {
+      const first = lists.find((l) => !l.completed);
+      setActiveId(first?.id || null);
     }
-  }, [isHydrated, lists, activeId]);
+  }, [lists, activeId]);
 
   const activeList = lists.find((l) => l.id === activeId) || null;
 
@@ -140,7 +120,7 @@ export function useActiveList() {
   const addItem = useCallback(
     (name: string, price: string, quantity: number) => {
       const item: ShoppingItem = {
-        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+        id: genId(),
         name,
         price,
         quantity,
@@ -187,10 +167,49 @@ export function useActiveList() {
     [updateItems]
   );
 
+  const completeList = useCallback(
+    (data: Omit<CompletionData, "completedAt">) => {
+      setLists((prev) =>
+        prev.map((l) =>
+          l.id === activeId
+            ? {
+                ...l,
+                completed: true,
+                updatedAt: new Date().toISOString(),
+                completion: {
+                  ...data,
+                  completedAt: new Date().toISOString(),
+                },
+              }
+            : l
+        )
+      );
+      // Switch to next active list or create new
+      const remaining = lists.filter((l) => !l.completed && l.id !== activeId);
+      if (remaining.length > 0) {
+        setActiveId(remaining[0].id);
+      } else {
+        setActiveId(null);
+      }
+    },
+    [activeId, lists]
+  );
+
+  const reopenList = useCallback((id: string) => {
+    setLists((prev) =>
+      prev.map((l) =>
+        l.id === id
+          ? { ...l, completed: false, completion: undefined, updatedAt: new Date().toISOString() }
+          : l
+      )
+    );
+    setActiveId(id);
+  }, []);
+
   const switchList = useCallback((id: string) => setActiveId(id), []);
 
   const createList = useCallback((name: string) => {
-    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    const id = genId();
     const newList: ShoppingListData = {
       id,
       name,
@@ -211,6 +230,13 @@ export function useActiveList() {
     [activeId]
   );
 
+  // Computed: is list ready to complete?
+  const canComplete =
+    activeList &&
+    !activeList.completed &&
+    activeList.items.length > 0 &&
+    activeList.items.every((i) => i.checked && !!i.price);
+
   return {
     lists,
     activeList,
@@ -220,8 +246,11 @@ export function useActiveList() {
     removeItem,
     updateQuantity,
     updatePrice,
+    completeList,
+    reopenList,
     switchList,
     createList,
     deleteList,
+    canComplete: !!canComplete,
   };
 }

@@ -1,0 +1,212 @@
+.page {
+  height: 100dvh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg);
+  max-width: 32rem;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+}
+
+.backButton {
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 0.75rem;
+  background: transparent;
+  touch-action: manipulation;
+
+  &:active {
+    background-color: color-mix(in srgb, var(--border) 45%, transparent);
+  }
+}
+
+.backIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--text-primary);
+}
+
+.title {
+  margin: 0;
+  flex: 1;
+  font-family: var(--font-data), sans-serif;
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  scrollbar-width: none;
+}
+
+.content::-webkit-scrollbar {
+  display: none;
+}
+
+.section {
+  display: block;
+}
+
+.sectionTitle {
+  margin: 0 0 0.5rem;
+  padding: 0 0.25rem;
+  font-size: 0.75rem;
+  font-family: var(--font-data), sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.sectionCard {
+  background-color: var(--bg-card);
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.sectionCard>*+* {
+  border-top: 1px solid var(--border);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+}
+
+.rowIconWrap {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.optionIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.rowBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.rowLabel {
+  display: block;
+  font-family: var(--font-data), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.rowDesc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.currencyButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: transparent;
+  transition: background-color 150ms ease, color 150ms ease;
+  touch-action: manipulation;
+}
+
+.currencyButtonActive {
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
+}
+
+.currencyButtonInactive {
+  color: var(--text-primary);
+
+  &:active {
+    background-color: color-mix(in srgb, var(--border) 45%, transparent);
+  }
+}
+
+.currencyIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.currencyLabel {
+  font-family: var(--font-data), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  flex: 1;
+  text-align: left;
+}
+
+.currencyDot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 9999px;
+  background-color: var(--primary);
+}
+
+.dangerButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: transparent;
+  color: var(--error);
+  transition: background-color 150ms ease;
+  touch-action: manipulation;
+
+  &:active {
+    background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  }
+}
+
+.dangerIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.dangerTextWrap {
+  text-align: left;
+}
+
+.dangerTitle {
+  display: block;
+  font-family: var(--font-data), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.dangerDesc {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}

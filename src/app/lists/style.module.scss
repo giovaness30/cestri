@@ -17,6 +17,59 @@
   border-bottom: 1px solid var(--border);
 }
 
+.tabs {
+  display: flex;
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 0 1rem;
+  gap: 0.25rem;
+}
+
+.tabButton {
+  flex: 1;
+  padding: 0.75rem 0;
+  text-align: center;
+  font-family: var(--font-data), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: color 150ms ease;
+  touch-action: manipulation;
+  position: relative;
+  border: none;
+  background: transparent;
+}
+
+.tabButtonActive {
+  color: var(--primary);
+}
+
+.tabButtonCompleted {
+  color: var(--secondary);
+}
+
+.tabButtonInactive {
+  color: var(--text-secondary);
+}
+
+.tabIndicator {
+  position: absolute;
+  bottom: 0;
+  left: 0.5rem;
+  right: 0.5rem;
+  height: 2px;
+  border-radius: 9999px;
+}
+
+.tabIndicatorPrimary {
+  background-color: var(--primary);
+}
+
+.tabIndicatorAccent {
+  background-color: var(--secondary);
+}
+
 .headerButton {
   width: 3rem;
   height: 3rem;
@@ -149,6 +202,12 @@
   font-size: 0.875rem;
 }
 
+.emptySubtext {
+  margin: 0;
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
 .listCard {
   background-color: var(--bg-card);
   border-radius: 1rem;
@@ -218,6 +277,10 @@
   margin-top: 0.25rem;
 }
 
+.listMetaRowWrap {
+  flex-wrap: wrap;
+}
+
 .listMetaText {
   font-size: 0.75rem;
   color: var(--text-secondary);
@@ -252,7 +315,7 @@
   font-family: var(--font-data), sans-serif;
   font-size: 0.875rem;
   font-weight: 700;
-  color: var(--primary);
+  color: var(--secondary);
 }
 
 .deleteButton {
@@ -276,4 +339,73 @@
   width: 1rem;
   height: 1rem;
   color: color-mix(in srgb, var(--text-secondary) 40%, transparent);
+}
+
+.completedCard {
+  background-color: var(--bg-card);
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, var(--secondary) 20%, transparent);
+  padding: 1rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.completedIconWrapper {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  background-color: color-mix(in srgb, var(--secondary) 10%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.completedIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--secondary);
+}
+
+.locationIcon {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: color-mix(in srgb, var(--secondary) 50%, transparent);
+}
+
+.completionDate {
+  margin: 0.25rem 0 0;
+  font-size: 10px;
+  color: color-mix(in srgb, var(--text-secondary) 60%, transparent);
+}
+
+.completedActionRow {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.reopenButton,
+.completedDeleteButton {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  touch-action: manipulation;
+}
+
+.reopenButton:active {
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+.completedDeleteButton:active {
+  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+}
+
+.reopenIcon {
+  width: 1rem;
+  height: 1rem;
+  color: color-mix(in srgb, var(--text-secondary) 50%, transparent);
 }

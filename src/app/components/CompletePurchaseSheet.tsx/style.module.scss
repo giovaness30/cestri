@@ -1,0 +1,278 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: color-mix(in srgb, var(--text-primary) 40%, transparent);
+  z-index: 50;
+}
+
+.sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background-color: var(--bg-card);
+  border-top-left-radius: 1.5rem;
+  border-top-right-radius: 1.5rem;
+  max-width: 32rem;
+  margin: 0 auto;
+  max-height: 90dvh;
+  overflow-y: auto;
+}
+
+.content {
+  padding: 1rem 1.25rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  position: relative;
+}
+
+.handleWrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  position: absolute;
+}
+
+.handle {
+  width: 2.5rem;
+  height: 0.25rem;
+  border-radius: 9999px;
+  background-color: color-mix(in srgb, var(--text-secondary) 20%, transparent);
+}
+
+.closeButton {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 0.75rem;
+  background: transparent;
+  touch-action: manipulation;
+
+  &:active {
+    background-color: color-mix(in srgb, var(--border) 40%, transparent);
+  }
+}
+
+.closeIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--text-secondary);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-data), sans-serif;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+}
+
+.subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.totalValue {
+  font-family: var(--font-data), sans-serif;
+  font-weight: 600;
+  color: var(--secondary);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 0.75rem;
+  font-family: var(--font-data), sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.inputRow,
+.locationButton,
+.receiptButton {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: var(--bg-modal-floating);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+}
+
+.locationButton,
+.receiptButton {
+  border: none;
+  width: 100%;
+  text-align: left;
+  touch-action: manipulation;
+  transition: background-color 150ms ease;
+
+  &:active {
+    background-color: color-mix(in srgb, var(--bg-modal-floating) 70%, transparent);
+  }
+}
+
+.sectionIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.input {
+  flex: 1;
+  background: transparent;
+  font-size: 0.875rem;
+  font-family: var(--font-data), sans-serif;
+  color: var(--text-primary);
+  border: none;
+  outline: none;
+
+  &::placeholder {
+    color: color-mix(in srgb, var(--text-secondary) 50%, transparent);
+  }
+}
+
+.locationCaptured {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: color-mix(in srgb, var(--secondary) 10%, transparent);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+}
+
+.locationCapturedIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--secondary);
+  flex-shrink: 0;
+}
+
+.locationCapturedText {
+  font-size: 0.875rem;
+  font-family: var(--font-data), sans-serif;
+  color: var(--secondary);
+  font-weight: 500;
+}
+
+.locationButtonText {
+  font-size: 0.875rem;
+  font-family: var(--font-data), sans-serif;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.receiptPreview {
+  position: relative;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.receiptImage {
+  width: 100%;
+  height: 8rem;
+  object-fit: cover;
+}
+
+.removeReceiptButton {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background-color: color-mix(in srgb, var(--text-primary) 60%, transparent);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.removeReceiptIcon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--bg);
+}
+
+.notesRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background-color: var(--bg-modal-floating);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+}
+
+.notesIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.textarea {
+  flex: 1;
+  background: transparent;
+  font-size: 0.875rem;
+  font-family: var(--font-data), sans-serif;
+  color: var(--text-primary);
+  border: none;
+  outline: none;
+  resize: none;
+
+  &::placeholder {
+    color: color-mix(in srgb, var(--text-secondary) 50%, transparent);
+  }
+}
+
+.submitButton {
+  width: 100%;
+  height: 3.5rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  gap: 0.5rem;
+}
+
+.submitIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,4 +1,4 @@
-import { ShoppingCart } from "lucide-react";
+import { ShoppingBasket } from "lucide-react";
 import ShoppingListItem from "../ShoppingListItem";
 import { ShoppingListData } from "@/app/hooks/useShoppingList";
 import style from "./style.module.scss";
@@ -27,7 +27,7 @@ const ShoppingList = ({ list, onToggle, onRemove, onUpdateQuantity, onPriceClick
       <div className={style.header}>
         <div className={style.headerLeft}>
           <div className={style.cartIconWrapper}>
-            <ShoppingCart className={style.cartIcon} />
+            <ShoppingBasket className={style.cartIcon} />
           </div>
           <div>
             <h2 className={style.title}>
@@ -52,7 +52,7 @@ const ShoppingList = ({ list, onToggle, onRemove, onUpdateQuantity, onPriceClick
       <div className={style.itemsContainer}>
         {items.length === 0 ? (
           <div className={style.emptyState}>
-            <ShoppingCart className={style.emptyIcon} />
+            <ShoppingBasket className={style.emptyIcon} />
             <p className={style.emptyTitle}>Lista vazia</p>
             <p className={style.emptySubtitle}>Capture ou adicione itens</p>
           </div>

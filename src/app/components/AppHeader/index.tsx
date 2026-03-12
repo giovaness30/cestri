@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ShoppingCart,
   Menu,
   X,
   List,
@@ -11,6 +10,8 @@ import {
   Bell,
   Settings,
   Share2,
+  ShoppingBasket
+
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import style from "./style.module.scss";
@@ -21,8 +22,8 @@ const menuItems = [
   { icon: Tags, label: "Ofertas & Promoções", path: "/deals", ready: false },
   { icon: MapPin, label: "Mercados Próximos", path: "/stores", ready: false },
   { icon: Bell, label: "Alertas de Preço", path: "/alerts", ready: false },
-  { icon: Share2, label: "Compartilhar Lista", path: "/share", ready: false },
-  { icon: Settings, label: "Configurações", path: "/settings", ready: false },
+  { icon: Share2, label: "Compartilhar Lista", path: "/share", ready: true },
+  { icon: Settings, label: "Configurações", path: "/settings", ready: true },
 ];
 
 const AppHeader = () => {
@@ -41,7 +42,7 @@ const AppHeader = () => {
     <>
       <header className={style.header}>
         <div className={style.brand}>
-          <ShoppingCart className={style.brandIcon} />
+          <ShoppingBasket className={style.brandIcon} />
           <span className={style.brandText}>
             Cestr<span className={style.brandAccent}>i</span>
           </span>
