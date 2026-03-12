@@ -6,6 +6,10 @@ import { useGlobal } from "@/providers/global-context";
 const CameraViewfinder = ({ onCapture }: { onCapture: (file: Blob) => void }) => {
 
   const { showPreviewImage, setShowPreviewImage } = useGlobal()
+
+  const handleActiveCamera = () => {
+    setShowPreviewImage(true);
+  }
   return (
     <div className={style.container}>
       <div className={style.scanGrid} />
@@ -30,11 +34,18 @@ const CameraViewfinder = ({ onCapture }: { onCapture: (file: Blob) => void }) =>
         }
 
         <div className={style.messageBox}>
-          <span className={style.messageText}>
-            {
-              showPreviewImage ? "Aponte para o produto" : " Clique em Abrir Câmera"
-            }
-          </span>
+          {
+            showPreviewImage ?
+              <>
+                <span className={style.messageText}>
+                  Aponte para o produto
+                </span>
+              </>
+              :
+              <span className={style.messageText} onClick={handleActiveCamera}>
+                Clique para Ativar a câmera
+              </span>
+          }
         </div>
       </div>
 

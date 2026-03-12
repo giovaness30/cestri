@@ -73,9 +73,8 @@ export default function CameraPreview({ onCapture, activeCamera = "environment" 
     const canvas = canvasRef.current;
 
     // ajusta tamanho do canvas igual ao do vídeo
-    // canvas.width = video.videoWidth;
-    // canvas.height = video.videoHeight;
-    console.log('capturePhoto');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
@@ -87,8 +86,6 @@ export default function CameraPreview({ onCapture, activeCamera = "environment" 
     canvas.toBlob(blob => {
       if (blob) {
         // envia foto para função externa
-        console.log('foto Captura', blob);
-
         if (onCapture) onCapture(blob);
 
       }

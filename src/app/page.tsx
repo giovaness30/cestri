@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronUp, ChevronDown, List, CheckCircle2 } from "lucide-react";
+import { ChevronUp, ChevronDown, List, CheckCircle2, LoaderCircle } from "lucide-react";
 import CameraViewfinder from "./components/CameraViewFinder";
 import CaptureBar from "./components/CaptureBar";
 import ShoppingList from "./components/ShoppingList";
@@ -20,6 +20,7 @@ const Index = () => {
   const [manualOpen, setManualOpen] = useState(false);
   const [priceCapture, setPriceCapture] = useState<{ id: string; name: string } | null>(null);
   const [completeOpen, setCompleteOpen] = useState(false);
+  const [isAnalyzingCapture, setIsAnalyzingCapture] = useState(false);
 
   const {
     activeList,
@@ -42,6 +43,7 @@ const Index = () => {
     // window.location.href = URL.createObjectURL(file); // para teste, abre a foto capturada em nova aba. Substitua por lógica de processamento da imagem
     // Aqui você pode processar a foto capturada, por exemplo, enviando para um OCR ou API de reconhecimento de produtos
     console.log("Foto capturada:", file);
+    setIsAnalyzingCapture(true);
     try {
       const result = await fetch("/api/ai", {
         method: "POST",
@@ -53,6 +55,10 @@ const Index = () => {
           imageBase64: await blobToBase64(file),
         }),
       });
+
+      if (!result.ok) {
+        throw new Error("Falha ao analisar imagem com IA");
+      }
 
       const data = await result.json()
 
@@ -76,6 +82,8 @@ const Index = () => {
 
     } catch (error) {
       console.error("Error:", error);
+    } finally {
+      setIsAnalyzingCapture(false);
     }
   };
 
@@ -92,10 +100,16 @@ const Index = () => {
         transition={{ type: "spring", damping: 30, stiffness: 300 }}
       >
         <CameraViewfinder onCapture={(file) => handleCapture(file)} />
+        {isAnalyzingCapture && (
+          <div className={style.loadingOverlay}>
+            <LoaderCircle className={style.loadingIcon} />
+            <p className={style.loadingText}>Analisando imagem...</p>
+          </div>
+        )}
       </motion.div>
 
       {/* Capture bar */}
-      {!expanded && <CaptureBar onManualAdd={() => setManualOpen(true)} />}
+      {!expanded && <CaptureBar onManualAdd={() => setManualOpen(true)} isLoading={isAnalyzingCapture} />}
 
       {/* Shopping list drawer */}
       <motion.div
