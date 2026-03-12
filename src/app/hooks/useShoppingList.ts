@@ -30,6 +30,7 @@ const LISTS_KEY = "shopping-lists";
 const ACTIVE_KEY = "active-list-id";
 
 function loadLists(): ShoppingListData[] {
+  if (typeof window === "undefined") return [];
   try {
     return JSON.parse(localStorage.getItem(LISTS_KEY) || "[]");
   } catch {
@@ -38,6 +39,7 @@ function loadLists(): ShoppingListData[] {
 }
 
 function saveLists(lists: ShoppingListData[]) {
+  if (typeof window === "undefined") return;
   localStorage.setItem(LISTS_KEY, JSON.stringify(lists));
 }
 
@@ -73,7 +75,7 @@ export function useShoppingLists() {
 export function useActiveList() {
   const [lists, setLists] = useState<ShoppingListData[]>(loadLists);
   const [activeId, setActiveId] = useState<string | null>(
-    () => localStorage.getItem(ACTIVE_KEY)
+    () => (typeof window === "undefined" ? null : localStorage.getItem(ACTIVE_KEY))
   );
 
   useEffect(() => saveLists(lists), [lists]);
