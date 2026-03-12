@@ -14,6 +14,14 @@ interface HistoricPriceEntry {
   price: number;
   completedAt: string;
   listName: string;
+  storeName?: string;
+}
+
+interface PurchaseHistoryItem {
+  id: string;
+  place: string;
+  price: number;
+  date: string;
 }
 
 interface ItemComparison {
@@ -26,6 +34,7 @@ interface ItemComparison {
   previousLatest: number | null;
   previousCount: number;
   previousListName?: string;
+  purchaseHistory: PurchaseHistoryItem[];
   priceDiff: number | null;
   status: ComparisonStatus;
 }
@@ -97,7 +106,12 @@ function formatMoney(value: number): string {
   return `R$ ${value.toFixed(2).replace(".", ",")}`;
 }
 
-function buildHistoryEntries(items: ShoppingItem[], completedAt: string, listName: string): HistoricPriceEntry[] {
+function buildHistoryEntries(
+  items: ShoppingItem[],
+  completedAt: string,
+  listName: string,
+  storeName?: string
+): HistoricPriceEntry[] {
   return items.flatMap((item) => {
     if (!item.price) return [];
     const parsed = parseCurrencyValue(item.price);
@@ -108,6 +122,7 @@ function buildHistoryEntries(items: ShoppingItem[], completedAt: string, listNam
       price,
       completedAt,
       listName,
+      storeName,
     }));
   });
 }
@@ -139,7 +154,12 @@ const ComparePage = () => {
   const historicEntries = useMemo(
     () =>
       historyLists.flatMap((list) =>
-        buildHistoryEntries(list.items, list.completion?.completedAt || list.updatedAt, list.name)
+        buildHistoryEntries(
+          list.items,
+          list.completion?.completedAt || list.updatedAt,
+          list.name,
+          list.completion?.storeName
+        )
       ),
     [historyLists]
   );
@@ -170,6 +190,12 @@ const ComparePage = () => {
           : null;
       const previousLatest = previousCount > 0 ? matchingHistory[0].price : null;
       const previousListName = previousCount > 0 ? matchingHistory[0].listName : undefined;
+      const purchaseHistory: PurchaseHistoryItem[] = matchingHistory.map((entry, idx) => ({
+        id: `${entry.listName}-${entry.completedAt}-${entry.price}-${idx}`,
+        place: entry.storeName || entry.listName || "Local nao informado",
+        price: entry.price,
+        date: entry.completedAt,
+      }));
 
       const priceDiff =
         currentPrice !== null && previousBest !== null ? currentPrice - previousBest : null;
@@ -195,6 +221,7 @@ const ComparePage = () => {
         previousLatest,
         previousCount,
         previousListName,
+        purchaseHistory,
         priceDiff,
         status,
       };
@@ -390,6 +417,22 @@ const ComparePage = () => {
                     <p className={style.referenceText}>
                       Baseado em {item.previousCount} registro(s), ultimo em: {item.previousListName}
                     </p>
+                  )}
+
+                  {item.purchaseHistory.length > 0 && (
+                    <div className={style.historySection}>
+                      <p className={style.historyTitle}>Historico de compras</p>
+                      <ul className={style.historyList}>
+                        {item.purchaseHistory.map((history) => (
+                          <li key={history.id} className={style.historyItem}>
+                            <span className={style.historyPlace}>{history.place}</span>
+                            <span className={style.historyMeta}>
+                              {formatMoney(history.price)} - {new Date(history.date).toLocaleDateString("pt-BR")}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
                 </motion.div>
               ))}
