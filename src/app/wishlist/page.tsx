@@ -126,7 +126,7 @@ const wishlist = () => {
       </div>
 
       {/* Modal para adicionar novo item */}
-      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)} setOpen={setIsModalOpen}>
+      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)} >
         <div>
           <input type="text" placeholder="Nome" onChange={(e) => setNewItemData({ ...newItemData, title: e.target.value })} />
           <input type="number" placeholder="Quantidade" value={newItemData.quantity ?? 1} onChange={(e) => setNewItemData({ ...newItemData, quantity: Number(e.target.value) })} />
@@ -135,7 +135,7 @@ const wishlist = () => {
       </Modal>
 
 
-      <Modal open={modalCamera.open} onClose={() => setModalCamera({ open: false, index: -1 })} setOpen={(open) => setModalCamera({ open, index: modalCamera.index })}>
+      <Modal open={modalCamera.open} onClose={() => setModalCamera({ open: false, index: -1 })} >
         <div>
           <CameraPreview onCapture={handleCapture} />
         </div>
