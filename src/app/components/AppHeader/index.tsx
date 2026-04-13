@@ -10,10 +10,12 @@ import {
   Bell,
   Settings,
   Share2,
-  ShoppingBasket
+  ShoppingBasket,
+  LogOut
 
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import style from "./style.module.scss";
 
 const menuItems = [
@@ -24,6 +26,7 @@ const menuItems = [
   { icon: Bell, label: "Alertas de Preço", path: "/alerts", ready: false },
   { icon: Share2, label: "Compartilhar Lista", path: "/share", ready: true },
   { icon: Settings, label: "Configurações", path: "/settings", ready: true },
+  { icon: LogOut, label: "Sair", action: "logout", ready: true },
 ];
 
 const AppHeader = () => {
@@ -31,9 +34,14 @@ const AppHeader = () => {
   const router = useRouter();
   const location = typeof window !== "undefined" ? window.location : null;
 
-  const handleNav = (path: string, ready: boolean) => {
-    if (ready) {
-      router.push(path);
+  const handleNav = async (item: any) => {
+    if (item.action === "logout") {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      router.push("/login");
+      setMenuOpen(false);
+    } else if (item.ready) {
+      router.push(item.path);
       setMenuOpen(false);
     }
   };
@@ -80,11 +88,11 @@ const AppHeader = () => {
             >
               <div className={style.menuList}>
                 {menuItems.map((item) => {
-                  const active = location?.pathname === item.path;
+                  const active = item.path && location?.pathname === item.path;
                   return (
                     <button
-                      key={item.path}
-                      onClick={() => handleNav(item.path, item.ready)}
+                      key={item.path || item.action}
+                      onClick={() => handleNav(item)}
                       className={`${style.menuItem} ${active ? style.menuItemActive : item.ready ? style.menuItemReady : style.menuItemDisabled
                         }`}
                     >
