@@ -7,7 +7,8 @@ name: z.string(),
   prices: z.array(
     z.object({
       price: z.number(),
-      quantity: z.number()
+      quantity: z.number(),
+      label: z.string().optional() // ex: "Caixa", "Promoção", "Unitário"
     })
   )
 });
@@ -16,7 +17,7 @@ const ImageAnalysisSchema = z.object({
   hasPriceTag: z.boolean(),
   isValidProduct: z.boolean(),
   confidence: z.number(),
-  products: z.array(productSchema)
+  product: productSchema
 });
 
 

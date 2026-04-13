@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronUp, ChevronDown, List, CheckCircle2, LoaderCircle } from "lucide-react";
+import { ChevronUp, ChevronDown, ChevronRight, CheckCircle2, LoaderCircle } from "lucide-react";
 import CameraViewfinder from "./components/CameraViewFinder";
 import CaptureBar from "./components/CaptureBar";
 import ShoppingList from "./components/ShoppingList";
@@ -14,6 +14,9 @@ import style from "./page.module.scss";
 import { blobToBase64 } from "./utils/utils";
 import { ApiBuyListResponse } from "./types/default";
 import CompletePurchaseSheet from "./components/CompletePurchaseSheet.tsx";
+import Modal from "./components/Modal";
+import { modalMultiPriceEmpty } from "./enums/emptyEnum";
+import InputLabelGroup from "./components/UI/Inputs/InputLabelGroup";
 
 const Index = () => {
   const [expanded, setExpanded] = useState(false);
@@ -21,6 +24,8 @@ const Index = () => {
   const [priceCapture, setPriceCapture] = useState<{ id: string; name: string } | null>(null);
   const [completeOpen, setCompleteOpen] = useState(false);
   const [isAnalyzingCapture, setIsAnalyzingCapture] = useState(false);
+  const [frozenFrame, setFrozenFrame] = useState<string | null>(null);
+  const [modalMultiPrice, setModalMultiPrice] = useState(modalMultiPriceEmpty);
 
   const {
     activeList,
@@ -42,7 +47,6 @@ const Index = () => {
   const handleCapture = async (file: Blob) => {
     // window.location.href = URL.createObjectURL(file); // para teste, abre a foto capturada em nova aba. Substitua por lógica de processamento da imagem
     // Aqui você pode processar a foto capturada, por exemplo, enviando para um OCR ou API de reconhecimento de produtos
-    console.log("Foto capturada:", file);
     setIsAnalyzingCapture(true);
     try {
       const result = await fetch("/api/ai", {
@@ -64,7 +68,7 @@ const Index = () => {
 
       const response = await data.response as ApiBuyListResponse;
 
-      const { isValidProduct, products } = response
+      const { isValidProduct, product } = response
 
       console.log('retorno', data);
       if (!isValidProduct) {
@@ -72,11 +76,29 @@ const Index = () => {
         return;
       }
 
-      if (products.length > 0) {
-        products.forEach(p => {
-          const priceInfo = p.prices.map(pr => `R$ ${pr.price.toFixed(2).replace(".", ",")} (x${pr.quantity})`).join(" ou ");
-          addItem(p.name, priceInfo, 1);
+      // Se múltiplos preços, abrir modal para escolha
+      if (product.prices.length > 1) {
+        setModalMultiPrice({
+          open: true,
+          priceSelected: 0,
+          prices: product.prices,
+          name: product.name
         });
+        return
+      }
+
+      if (product) {
+        const pr = product.prices[0];
+        const fmt = (n: number) => `R$ ${n.toFixed(2).replace(".", ",")}`;
+        const isHighlighted = pr.quantity > 1;
+        addItem(
+          product.name,
+          fmt(pr.price),
+          pr.quantity,
+          isHighlighted ? pr.quantity : undefined,
+          undefined,
+          pr.label,
+        );
         return;
       }
 
@@ -84,6 +106,7 @@ const Index = () => {
       console.error("Error:", error);
     } finally {
       setIsAnalyzingCapture(false);
+      setFrozenFrame(null);
     }
   };
 
@@ -99,7 +122,11 @@ const Index = () => {
         animate={{ height: expanded ? "0%" : "35%" }}
         transition={{ type: "spring", damping: 30, stiffness: 300 }}
       >
-        <CameraViewfinder onCapture={(file) => handleCapture(file)} />
+        <CameraViewfinder
+          onCapture={(file) => handleCapture(file)}
+          frozenFrame={frozenFrame ?? undefined}
+          onFrozenFrame={(url) => setFrozenFrame(url)}
+        />
         {isAnalyzingCapture && (
           <div className={style.loadingOverlay}>
             <LoaderCircle className={style.loadingIcon} />
@@ -196,6 +223,79 @@ const Index = () => {
           setCompleteOpen(false);
         }}
       />
+      <Modal
+        open={modalMultiPrice.open}
+        onClose={() => setModalMultiPrice(modalMultiPriceEmpty)}
+        title="MÚLTIPLOS PREÇOS"
+      >
+        <p className={style.multiPriceProductName}>{modalMultiPrice.name}</p>
+        <div className={style.multiPriceList}>
+          {(() => {
+            const singleUnitPrice = modalMultiPrice.prices.find(p => p.quantity === 1)?.price ?? null;
+            return modalMultiPrice.prices.map((pr, index) => {
+              const isBox = pr.label === "Caixa";
+              const isPromo = !isBox && pr.quantity > 1;
+              const isHighlighted = isBox || isPromo;
+              // price já é por unidade (definido no prompt da IA)
+              const unitPrice = pr.price;
+              const totalPrice = pr.price * pr.quantity;
+              const savings = isHighlighted && singleUnitPrice
+                ? Math.round((1 - unitPrice / singleUnitPrice) * 100)
+                : null;
+              const fmt = (n: number) => `R$ ${n.toFixed(2).replace(".", ",")}`;
+              return (
+                <div
+                  key={index}
+                  className={`${style.multiPriceOption} ${isBox ? style.multiPriceOptionBox : isPromo ? style.multiPriceOptionPromo : ""}`}
+                  onClick={() => {
+                    addItem(
+                      modalMultiPrice.name,
+                      fmt(unitPrice),
+                      pr.quantity,
+                      isHighlighted ? pr.quantity : undefined,
+                      isHighlighted && singleUnitPrice ? fmt(singleUnitPrice) : undefined,
+                      pr.label,
+                    );
+                    setModalMultiPrice(modalMultiPriceEmpty);
+                  }}
+                >
+                  <div className={style.multiPriceInfo}>
+                    {isBox ? (
+                      <>
+                        <div className={style.multiPriceBadgeRow}>
+                          <span className={style.multiPriceBadgeBox}>Caixa · {pr.quantity} un.</span>
+                          {savings !== null && (
+                            <span className={style.multiPriceSavingsTag}>-{savings}%</span>
+                          )}
+                        </div>
+                        <span className={style.multiPriceAmount}>{fmt(unitPrice)}<span className={style.multiPricePerUnit}>/un.</span></span>
+                        <span className={style.multiPriceTotalLine}>Total da caixa · {fmt(totalPrice)}</span>
+                      </>
+                    ) : isPromo ? (
+                      <>
+                        <div className={style.multiPriceBadgeRow}>
+                          <span className={style.multiPriceBadge}>Promoção · x{pr.quantity} un.</span>
+                          {savings !== null && (
+                            <span className={style.multiPriceSavingsTag}>-{savings}%</span>
+                          )}
+                        </div>
+                        <span className={style.multiPriceAmount}>{fmt(unitPrice)}<span className={style.multiPricePerUnit}>/un.</span></span>
+                        <span className={style.multiPriceTotalLine}>Total do kit · {fmt(totalPrice)}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className={style.multiPriceAmount}>{fmt(pr.price)}</span>
+                        <span className={style.multiPriceQuantityLabel}>x{pr.quantity} unidade · preço normal</span>
+                      </>
+                    )}
+                  </div>
+                  <ChevronRight className={style.multiPriceArrow} />
+                </div>
+              );
+            });
+          })()}
+        </div>
+      </Modal>
     </div>
   );
 };

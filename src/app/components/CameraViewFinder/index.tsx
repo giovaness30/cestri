@@ -3,7 +3,13 @@ import style from "./style.module.scss";
 import CameraPreview from "../CameraPreview";
 import { useGlobal } from "@/providers/global-context";
 
-const CameraViewfinder = ({ onCapture }: { onCapture: (file: Blob) => void }) => {
+interface CameraViewfinderProps {
+  onCapture: (file: Blob) => void;
+  frozenFrame?: string;
+  onFrozenFrame?: (dataUrl: string) => void;
+}
+
+const CameraViewfinder = ({ onCapture, frozenFrame, onFrozenFrame }: CameraViewfinderProps) => {
 
   const { showPreviewImage, setShowPreviewImage } = useGlobal()
 
@@ -13,7 +19,16 @@ const CameraViewfinder = ({ onCapture }: { onCapture: (file: Blob) => void }) =>
   return (
     <div className={style.container}>
       <div className={style.scanGrid} />
-      <CameraPreview onCapture={onCapture} />
+      <CameraPreview onCapture={onCapture} onFrozenFrame={onFrozenFrame} />
+
+      {/* Frame congelado durante análise */}
+      {frozenFrame && (
+        <img
+          src={frozenFrame}
+          alt=""
+          className={style.frozenFrame}
+        />
+      )}
       {/* Scan corners */}
       <div className={style.scanCorners} />
       <div className={style.cornerTopRight} />

@@ -9,6 +9,9 @@ interface ShoppingListItemProps {
   quantity: number;
   checked?: boolean;
   index: number;
+  promoMinQty?: number;
+  regularUnitPrice?: string;
+  promoLabel?: string;
   onToggle: () => void;
   onRemove: () => void;
   onIncrement: () => void;
@@ -22,6 +25,9 @@ const ShoppingListItem = ({
   quantity,
   checked = false,
   index,
+  promoMinQty,
+  regularUnitPrice,
+  promoLabel,
   onToggle,
   onRemove,
   onIncrement,
@@ -29,6 +35,17 @@ const ShoppingListItem = ({
   onPriceClick,
 }: ShoppingListItemProps) => {
   const hasPrice = !!price;
+
+  const isPromoActive = !!promoMinQty && hasPrice && quantity >= promoMinQty;
+  const isPromoInvalid = !!promoMinQty && !hasPrice;
+
+  const savingsPercent = (() => {
+    if (!isPromoActive || !regularUnitPrice) return null;
+    const regular = parseFloat(regularUnitPrice.replace(/[^\d,.-]/g, "").replace(",", "."));
+    const promo = parseFloat(price.replace(/[^\d,.-]/g, "").replace(",", "."));
+    if (isNaN(regular) || isNaN(promo) || regular === 0) return null;
+    return Math.round((1 - promo / regular) * 100);
+  })();
 
   return (
     <motion.div
@@ -72,20 +89,39 @@ const ShoppingListItem = ({
             </button>
           </div>
         </div>
+
+        {/* Badge de promoção / caixa ativa */}
+        {isPromoActive && (
+          <div className={style.promoBadgeRow}>
+            <span className={promoLabel === "Caixa" ? style.promoBadgeBox : style.promoBadge}>
+              {promoLabel === "Caixa" ? `Caixa · ${promoMinQty} un.` : `Promoção · x${promoMinQty} un.`}
+            </span>
+            {savingsPercent !== null && (
+              <span className={style.promoSavings}>-{savingsPercent}%</span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Price / Add price */}
       <div className={style.actions}>
         {hasPrice ? (
-          <span className={style.priceText}>{price}</span>
+          <div className={style.priceBlock}>
+            <span className={style.priceText}>{price}<span className={style.pricePerUnit}>/un.</span></span>
+          </div>
         ) : (
-          <button
-            onClick={onPriceClick}
-            className={style.addPriceButton}
-          >
-            <Camera className={style.cameraIcon} />
-            <span className={style.addPriceText}>Preço</span>
-          </button>
+          <div className={style.addPriceGroup}>
+            <button
+              onClick={onPriceClick}
+              className={style.addPriceButton}
+            >
+              <Camera className={style.cameraIcon} />
+              <span className={style.addPriceText}>Preço</span>
+            </button>
+            {isPromoInvalid && (
+              <span className={style.promoHint}>mín. {promoMinQty} un.</span>
+            )}
+          </div>
         )}
         <button
           onClick={onRemove}

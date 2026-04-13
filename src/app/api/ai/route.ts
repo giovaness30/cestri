@@ -55,38 +55,45 @@ export async function POST(request: NextRequest) {
         
       case "listBuy":
          const listBuyingResult = await analyzeImageListBuyFlow({
-          instruction: `Você é um sistema especializado em análise de imagens de supermercados.
+          instruction: 
+` Você é um sistema especializado em análise de imagens de supermercados.
 
 Analise a imagem enviada e identifique:
 
 1. Se existe uma etiqueta de preço (ex: etiqueta de gôndola)
+Regras: Retornar isso na propriedade hasPriceTag (boolean).
+
 2. Se existe um produto visível
+Regras: Se houver um produto claramente visível, mesmo sem etiqueta de preço, retorne isValidProduct = true. Caso contrário, isValidProduct = false.
+
 3. O nome do produto
+Regras: Retornar o nome do produto identificado. Se não for possível identificar um nome, retornar uma string vazia e isValidProduct = true (pois pode ser um produto genérico sem marca visível). Se não houver produto, retornar string vazia e isValidProduct = false.
+
 4. Os preços associados ao produto
-5. Promoções por quantidade (ex: 3 por 10)
+Regras: Retornar uma lista de preços encontrados. Cada preço deve conter:
+- quantity: a quantidade de unidades naquela oferta (ex: 1 para preço unitário, 3 para kit de 3, 36 para caixa com 36)
+- price: SEMPRE o preço POR UNIDADE. Nunca retorne o valor total de um kit ou caixa — sempre divida pelo número de unidades se necessário.
+  Exemplos: "3 por R$10,00" → price = 3.33 (10 ÷ 3). "Caixa 36 = R$774,02" → price = 21.50 (774.02 ÷ 36). "A partir de 3 un: R$21,50" → price = 21.50 (já é unitário).
+- label (opcional): Use "Caixa" para embalagens fechadas (CX, CXA, Fardo, Pack), "Promoção" para promoções por quantidade, omitir se for preço normal unitário.
+Se não houver preço, retornar lista vazia.
 
+5. Promoções por quantidade (ex: "A partir de 3 un: R$21,50", "3 por R$10", "Leve 3 pague 2")
 Regras:
+- "A partir de X UND: R$Y" ou "A partir de X un: R$Y" → Y já é o preço unitário. price = Y, quantity = X, label = "Promoção"
+- "X por R$Y" ou "Leve X por R$Y" → calcule price = Y ÷ X (preço unitário), quantity = X, label = "Promoção"
+- "Leve X Pague Z" → preço unitário = preço_normal × Z ÷ X. price = esse valor, quantity = X, label = "Promoção"
+- Se houver também preço unitário/normal, retorne dois preços: sem label para o preço normal (quantity = 1) e label = "Promoção" para a oferta.
 
-- Se existir preço unitário, quantity = 1
-- Se existir promoção por quantidade (ex: 3 por 10), retornar quantity = 3 e price = 10
-- Se existir produto mas não houver preço, retornar prices vazio
-- Se a imagem não representar um produto sendo vendido, retornar isValidProduct = false
-- Se houver múltiplos produtos, retornar todos
-- Se não tiver preço em nenhum lugar, retornar hasPriceTag = false
+6. Embalagem fechada / Caixa (ex: "Caixa com 36 un: R$774,02", "CX 24: R$48,00", "CXA 12 = R$30,00")
+Regras:
+- Se aparecer "Caixa", "CX", "CXA", "Fardo", "Pack" seguido de quantidade e preço → identificar como embalagem fechada.
+- price = valor total da embalagem DIVIDIDO pela quantidade (preço por unidade). Ex: 774,02 ÷ 36 = 21.50. quantity = número de unidades na caixa. label = "Caixa"
+- Se na mesma imagem houver preço unitário avulso, retorne ambos.
 
-Regras para promoções por quantidade:
+7. Se houver múltiplos produtos, retornar apenas um Deles.
 
-- Se aparecer "A partir de X UND", "A partir de X unidades", "Leve X", "Na compra de X", isso indica que o preço promocional só vale para quantity = X ou mais.
-- Quando encontrar esse padrão, utilize X como quantity.
+8. Responda apenas seguindo o schema. Não adicione informações extras ou explicações.`,
 
-- Exemplo:
-  "A partir de 3 UND - R$ 5,99" → quantity = 3, price = 5.99
-
-- Se houver também um preço unitário, retorne dois preços:
-  quantity = 1 (preço normal)
-  quantity = X (preço promocional)
-
-Responda apenas seguindo o schema.`,
           imageBase64: parsed.imageBase64,
         });
 

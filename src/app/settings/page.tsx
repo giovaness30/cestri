@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Moon, Sun, DollarSign, Trash2, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Switch } from "../components/UI/Switch";
 import style from "./page.module.scss";
+import useSettingsApp, { SettingsApp } from "../hooks/useSettingsApp";
 
 const CURRENCY_OPTIONS = [
   { value: "BRL", label: "R$ — Real Brasileiro" },
@@ -13,35 +14,38 @@ const CURRENCY_OPTIONS = [
   { value: "EUR", label: "€ — Euro" },
 ];
 
-function loadSettings() {
-  try {
-    return JSON.parse(localStorage.getItem("cestri-settings") || "{}");
-  } catch {
-    return {};
-  }
-}
-
-function saveSettings(s: Record<string, unknown>) {
-  localStorage.setItem("cestri-settings", JSON.stringify(s));
-}
-
 const Settings = () => {
   const router = useRouter();
-  const [settings, setSettings] = useState<Record<string, unknown>>(loadSettings);
 
-  const darkMode = settings.darkMode === true;
-  const currency = (settings.currency as string) || "BRL";
-  const confirmDelete = settings.confirmDelete !== false;
+  const { settingsApp, setSettingsApp } = useSettingsApp();
 
-  useEffect(() => saveSettings(settings), [settings]);
+  function loadSettings() {
+    if (typeof window === "undefined") return {};
+    return settingsApp
+  }
+
+  const [settings, setSettings] = useState<SettingsApp>(settingsApp);
 
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
+
+    if (settingsApp) {
+      setSettings(settingsApp);
     }
-  }, [darkMode]);
+  }, [settings])
+
+  // const darkMode = settings.darkMode === true;
+  // const currency = (settings.currency as string) || "BRL";
+  // const confirmDelete = settings.confirmDelete !== false;
+
+  // useEffect(() => setSettingsApp(settings), [settings]);
+
+  // useEffect(() => {
+  //   if (darkMode) {
+  //     document.documentElement.classList.add("dark");
+  //   } else {
+  //     document.documentElement.classList.remove("dark");
+  //   }
+  // }, [darkMode]);
 
   const update = (key: string, value: unknown) =>
     setSettings((prev) => ({ ...prev, [key]: value }));
@@ -50,7 +54,7 @@ const Settings = () => {
     if (window.confirm("Tem certeza? Isso apagará TODAS as listas e configurações.")) {
       localStorage.removeItem("shopping-lists");
       localStorage.removeItem("active-list-id");
-      localStorage.removeItem("cestri-settings");
+      localStorage.removeItem("settings-app");
       window.location.reload();
     }
   };
@@ -74,11 +78,11 @@ const Settings = () => {
         {/* Appearance */}
         <Section title="Aparência" delay={0}>
           <Row
-            icon={darkMode ? <Moon className={style.optionIcon} /> : <Sun className={style.optionIcon} />}
+            icon={settingsApp.theme === "dark" ? <Moon className={style.optionIcon} /> : <Sun className={style.optionIcon} />}
             label="Modo escuro"
             description="Muda a interface para tema escuro"
           >
-            <Switch checked={darkMode} onCheckedChange={(v) => update("darkMode", v)} />
+            <Switch checked={settingsApp.theme === "dark"} onCheckedChange={(v) => update("theme", v ? "dark" : "light")} />
           </Row>
         </Section>
 
@@ -88,14 +92,14 @@ const Settings = () => {
             <button
               key={opt.value}
               onClick={() => update("currency", opt.value)}
-              className={`${style.currencyButton} ${currency === opt.value ? style.currencyButtonActive : style.currencyButtonInactive
+              className={`${style.currencyButton} ${settingsApp.currency === opt.value ? style.currencyButtonActive : style.currencyButtonInactive
                 }`}
             >
               <DollarSign className={style.currencyIcon} />
               <span className={style.currencyLabel}>
                 {opt.label}
               </span>
-              {currency === opt.value && (
+              {settingsApp.currency === opt.value && (
                 <div className={style.currencyDot} />
               )}
             </button>
@@ -109,10 +113,10 @@ const Settings = () => {
             label="Confirmar exclusão"
             description="Pedir confirmação ao deletar itens"
           >
-            <Switch
+            {/* <Switch
               checked={confirmDelete}
               onCheckedChange={(v) => update("confirmDelete", v)}
-            />
+            /> */}
           </Row>
         </Section>
 

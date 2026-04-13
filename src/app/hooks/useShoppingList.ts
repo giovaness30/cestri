@@ -3,9 +3,12 @@ import { useState, useEffect, useCallback } from "react";
 export interface ShoppingItem {
   id: string;
   name: string;
-  price: string; // "" means no price yet
+  price: string; // "" means no price yet (per-unit price)
   quantity: number;
   checked: boolean;
+  promoMinQty?: number;       // quantidade mínima para o preço promocional valer
+  regularUnitPrice?: string;  // preço unitário normal para calcular % de economia
+  promoLabel?: string;        // ex: "Caixa", "Promoção"
 }
 
 export interface CompletionData {
@@ -141,13 +144,16 @@ export function useActiveList() {
   );
 
   const addItem = useCallback(
-    (name: string, price: string, quantity: number) => {
+    (name: string, price: string, quantity: number, promoMinQty?: number, regularUnitPrice?: string, promoLabel?: string) => {
       const item: ShoppingItem = {
         id: genId(),
         name,
         price,
         quantity,
         checked: false,
+        promoMinQty,
+        regularUnitPrice,
+        promoLabel,
       };
       updateItems((items) => [...items, item]);
     },
@@ -173,9 +179,16 @@ export function useActiveList() {
   const updateQuantity = useCallback(
     (id: string, delta: number) => {
       updateItems((items) =>
-        items.map((i) =>
-          i.id === id ? { ...i, quantity: Math.max(1, i.quantity + delta) } : i
-        )
+        items.map((i) => {
+          if (i.id !== id) return i;
+          const newQty = Math.max(1, i.quantity + delta);
+          const promoInvalidated = !!i.promoMinQty && newQty < i.promoMinQty;
+          return {
+            ...i,
+            quantity: newQty,
+            price: promoInvalidated ? "" : i.price,
+          };
+        })
       );
     },
     [updateItems]

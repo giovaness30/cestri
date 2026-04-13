@@ -26,11 +26,12 @@ export type ApiBuyListResponse = {
   confidence: number;
   hasPriceTag: boolean;
   isValidProduct: boolean;
-  products: {
+  product: {
     name: string,
     prices: {
         price: number,
-        quantity: number
-    }[]     
-  }[];
+        quantity: number,
+        label?: string // ex: "Caixa", "Promoção", "Unitário"
+    }[]
+  };
 }

@@ -5,10 +5,11 @@ import { useEffect, useRef } from "react";
 
 type Props = {
   onCapture?: (file: Blob) => void; // função que recebe a foto
+  onFrozenFrame?: (dataUrl: string) => void; // frame congelado para exibir durante análise
   activeCamera?: "environment" | "user"; // câmera traseira ou frontal
 };
 
-export default function CameraPreview({ onCapture, activeCamera = "environment" }: Props) {
+export default function CameraPreview({ onCapture, onFrozenFrame, activeCamera = "environment" }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isStartingRef = useRef(false);
@@ -82,12 +83,15 @@ export default function CameraPreview({ onCapture, activeCamera = "environment" 
     // desenha frame do vídeo no canvas
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // converte para Blob (jpeg)
+    // congela o frame imediatamente (síncrono) para exibir durante a análise
+    if (onFrozenFrame) {
+      onFrozenFrame(canvas.toDataURL("image/jpeg", 0.9));
+    }
+
+    // converte para Blob (jpeg) e envia para análise
     canvas.toBlob(blob => {
       if (blob) {
-        // envia foto para função externa
         if (onCapture) onCapture(blob);
-
       }
     }, "image/jpeg", 0.9);
   }

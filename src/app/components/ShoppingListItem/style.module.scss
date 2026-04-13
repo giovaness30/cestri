@@ -132,11 +132,80 @@
   flex-shrink: 0;
 }
 
+.promoBadgeRow {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.375rem;
+}
+
+.promoBadge {
+  font-family: var(--font-data), sans-serif;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  background-color: color-mix(in srgb, var(--secondary) 12%, transparent);
+  border-radius: 0.3rem;
+  padding: 0.1rem 0.4rem;
+}
+
+.promoBadgeBox {
+  font-family: var(--font-data), sans-serif;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+  background-color: color-mix(in srgb, var(--primary) 12%, transparent);
+  border-radius: 0.3rem;
+  padding: 0.1rem 0.4rem;
+}
+
+.promoSavings {
+  font-family: var(--font-data), sans-serif;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #fff;
+  background-color: var(--secondary);
+  border-radius: 0.3rem;
+  padding: 0.1rem 0.4rem;
+}
+
+.priceBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
 .priceText {
   font-family: var(--font-data), sans-serif;
   font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.pricePerUnit {
+  font-size: 0.6875rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.addPriceGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.promoHint {
+  font-family: var(--font-data), sans-serif;
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--secondary) 70%, transparent);
+  letter-spacing: 0.04em;
 }
 
 .addPriceButton {

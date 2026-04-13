@@ -66,6 +66,9 @@ const ShoppingList = ({ list, onToggle, onRemove, onUpdateQuantity, onPriceClick
               quantity={item.quantity}
               checked={item.checked}
               index={i}
+              promoMinQty={item.promoMinQty}
+              regularUnitPrice={item.regularUnitPrice}
+              promoLabel={item.promoLabel}
               onToggle={() => onToggle(item.id)}
               onRemove={() => onRemove(item.id)}
               onIncrement={() => onUpdateQuantity(item.id, 1)}
