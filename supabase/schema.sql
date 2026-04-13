@@ -63,6 +63,13 @@ CREATE TRIGGER trg_create_user_settings
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION create_default_user_settings();
 
+-- Políticas RLS para user_settings
+ALTER TABLE user_settings ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own settings" ON user_settings FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own settings" ON user_settings FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own settings" ON user_settings FOR UPDATE USING (auth.uid() = user_id);
+
 
 -- ============================================================
 -- TABELA: shopping_lists

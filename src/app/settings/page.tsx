@@ -24,14 +24,14 @@ const Settings = () => {
     return settingsApp
   }
 
-  const [settings, setSettings] = useState<SettingsApp>(settingsApp);
+  // const [settings, setSettings] = useState<SettingsApp>(settingsApp);
 
-  useEffect(() => {
+  // useEffect(() => {
 
-    if (settingsApp) {
-      setSettings(settingsApp);
-    }
-  }, [settings])
+  //   if (settingsApp) {
+  //     setSettings(settingsApp);
+  //   }
+  // }, [settings])
 
   // const darkMode = settings.darkMode === true;
   // const currency = (settings.currency as string) || "BRL";
@@ -39,16 +39,17 @@ const Settings = () => {
 
   // useEffect(() => setSettingsApp(settings), [settings]);
 
-  // useEffect(() => {
-  //   if (darkMode) {
-  //     document.documentElement.classList.add("dark");
-  //   } else {
-  //     document.documentElement.classList.remove("dark");
-  //   }
-  // }, [darkMode]);
+  useEffect(() => {
+    if (settingsApp.theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [settingsApp.theme]);
 
-  const update = (key: string, value: unknown) =>
-    setSettings((prev) => ({ ...prev, [key]: value }));
+  const update = async (key: string, value: unknown) => {
+    await setSettingsApp({ [key]: value });
+  };
 
   const handleClearAll = () => {
     if (window.confirm("Tem certeza? Isso apagará TODAS as listas e configurações.")) {
