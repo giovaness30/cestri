@@ -15,8 +15,6 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           )
@@ -26,7 +24,14 @@ export async function middleware(request: NextRequest) {
   )
 
   // Refresh session — nunca remova esta linha
-  const { data: { user } } = await supabase.auth.getUser()
+  let user = null
+  try {
+    const { data: { user: authUser } } = await supabase.auth.getUser()
+    user = authUser
+  } catch (error) {
+    console.error('Error getting user:', error)
+    // If auth fails, treat as unauthenticated
+  }
 
   const { pathname } = request.nextUrl
   const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route))
