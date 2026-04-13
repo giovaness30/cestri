@@ -24,30 +24,14 @@ const Settings = () => {
     return settingsApp
   }
 
-  // const [settings, setSettings] = useState<SettingsApp>(settingsApp);
-
-  // useEffect(() => {
-
-  //   if (settingsApp) {
-  //     setSettings(settingsApp);
-  //   }
-  // }, [settings])
-
-  // const darkMode = settings.darkMode === true;
-  // const currency = (settings.currency as string) || "BRL";
-  // const confirmDelete = settings.confirmDelete !== false;
-
-  // useEffect(() => setSettingsApp(settings), [settings]);
-
-  useEffect(() => {
-    if (settingsApp.theme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [settingsApp.theme]);
-
   const update = async (key: string, value: unknown) => {
+    if (key === "theme") {
+      if (value === "dark") {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    }
     await setSettingsApp({ [key]: value });
   };
 

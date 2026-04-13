@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react'
+import useSettingsApp from '../app/hooks/useSettingsApp'
 
 type GlobalContextType = {
   clickPicture: boolean
@@ -14,6 +15,7 @@ const GlobalContext = createContext<GlobalContextType | null>(null)
 export function GlobalProvider({ children }: { children: ReactNode }) {
   const [clickPicture, setClickPicture] = useState<boolean>(false)
   const [showPreviewImage, setShowPreviewImage] = useState<boolean>(true)
+  const { settingsApp } = useSettingsApp()
 
   useEffect(() => {
     if (clickPicture) {
@@ -22,6 +24,14 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
       }, 1000)
     }
   }, [clickPicture])
+
+  useEffect(() => {
+    if (settingsApp.theme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark')
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light')
+    }
+  }, [settingsApp.theme])
 
   return (
     <GlobalContext.Provider value={{
